@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Detallado Automotriz</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body class="admin-body">
+
+<nav>
+  <div class="nav-marca">
+    Panel Administrador
+    <small>Detallado Automotriz</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/">← Vista Usuario</a></li>
+    <li><a href="#" id="btnLogout" class="nav-btn hidden">Salir</a></li>
+  </ul>
+</nav>
+
+<!-- Login -->
+<div id="loginView" class="admin-login-wrap">
+  <div class="admin-login-box">
+    <h1>Iniciar sesión</h1>
+    <p>Acceso exclusivo para administradores</p>
+    <div id="loginError" class="admin-error hidden"></div>
+    <div class="campo">
+      <label>Correo</label>
+      <input type="email" id="loginEmail" placeholder="admin@ejemplo.com">
+    </div>
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn-enviar" style="margin-top:1rem;" id="btnLogin">Entrar al panel</button>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboardView" class="admin-dashboard hidden">
+  <div class="admin-header">
+    <div>
+      <div class="seccion-label">Operaciones</div>
+      <h1>Dashboard</h1>
+    </div>
+    <div class="admin-actions">
+      <button class="btn-admin outline" id="btnRefresh">Actualizar</button>
+      <button class="btn-admin" id="btnLogout2">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Servicios más solicitados</h3>
+      <canvas id="chartServicios"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Estado de citas</h3>
+      <canvas id="chartStatus"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Ingresos mensuales (completadas)</h3>
+      <canvas id="chartIngresos"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Cancelaciones por mes</h3>
+      <canvas id="chartCancelaciones"></canvas>
+    </div>
+  </div>
+
+  <div class="bookings-section">
+    <h3>Citas recientes</h3>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Cliente</th>
+          <th>Servicio</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

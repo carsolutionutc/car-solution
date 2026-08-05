@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma Web para el Detallado Automotriz</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --azul: #0d47a1;
+  --azul2: #1565c0;
+  --azul3: #1976d2;
+  --azulclaro: #e3f2fd;
+  --acento: #42a5f5;
+  --fondo: #f0f4f8;
+  --blanco: #ffffff;
+  --texto: #1a1a2e;
+  --gris: #6b7280;
+  --gris2: #e5e7eb;
+  --verde: #22c55e;
+  --sombra: 0 4px 24px rgba(13,71,161,0.10);
+  --radio: 14px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999;
+  background: var(--azul);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  height: 62px;
+  box-shadow: 0 2px 12px rgba(13,71,161,0.25);
+}
+
+.nav-marca {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.nav-marca small {
+  display: block;
+  font-size: 0.62rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 400;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: #fff; }
+
+.nav-btn {
+  background: #fff;
+  color: var(--azul) !important;
+  padding: 0.4rem 1.1rem;
+  border-radius: 100px;
+  font-weight: 700 !important;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a2f6e 0%, #0d47a1 45%, #1565c0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.hero-lines {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.07;
+}
+
+.hero-lines svg { width: 100%; height: 100%; }
+
+.hero-contenido { position: relative; z-index: 1; max-width: 750px; }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  padding: 0.35rem 1rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.dot-live {
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+}
+
+.hero h1 span { color: var(--acento); }
+
+.hero p {
+  color: rgba(255,255,255,0.72);
+  font-size: 1.05rem;
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.btn-hero {
+  background: #fff;
+  color: var(--azul);
+  padding: 0.8rem 2rem;
+  border-radius: 100px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-hero:hover { background: var(--azulclaro); transform: translateY(-2px); }
+
+.btn-hero2 {
+  background: transparent;
+  color: #fff;
+  padding: 0.8rem 2rem;
+  border-radius: 100px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.btn-hero2:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+
+.hero-stats {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 4rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+}
+
+.stat-icono {
+  width: 38px; height: 38px;
+  background: rgba(66,165,245,0.18);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icono svg { width: 20px; height: 20px; }
+
+.stat-texto { text-align: left; }
+
+.stat-n {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  display: block;
+  line-height: 1.2;
+}
+.stat-l {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* ── SECCIÓN BASE ── */
+section { padding: 5rem 2rem; }
+
+.seccion-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--azul3);
+  margin-bottom: 0.4rem;
+}
+
+.seccion-titulo {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.75rem;
+  color: var(--texto);
+}
+
+.seccion-sub { color: var(--gris); font-size: 0.95rem; font-weight: 400; }
+
+/* ── SERVICIOS ── */
+#servicios { background: #fff; }
+
+.sv-container { max-width: 1100px; margin: 0 auto; }
+
+.sv-header { text-align: center; margin-bottom: 2.5rem; }
+
+.sv-filtros {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  color: var(--gris);
+  padding: 0.45rem 1.15rem;
+  border-radius: 100px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.filtro-btn:hover, .filtro-btn.activo {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+}
+
+.sv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+
+.sv-card {
+  background: var(--fondo);
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.sv-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--azul);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.sv-card:hover { border-color: var(--azul3); background: var(--azulclaro); transform: translateY(-3px); box-shadow: var(--sombra); }
+.sv-card:hover::after, .sv-card.elegida::after { transform: scaleX(1); }
+.sv-card.elegida { border-color: var(--azul); background: var(--azulclaro); box-shadow: 0 0 0 2px var(--azul); }
+
+.sv-etiqueta {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(13,71,161,0.1);
+  color: var(--azul);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.sv-etiqueta.pop { background: rgba(13,71,161,0.18); color: var(--azul2); }
+
+.sv-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; font-weight: 500; margin-bottom: 0.4rem; color: var(--texto); }
+.sv-card p { font-size: 0.8rem; color: var(--gris); margin-bottom: 1rem; line-height: 1.5; }
+
+.sv-items { list-style: none; margin-bottom: 1rem; }
+.sv-items li {
+  font-size: 0.78rem;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.sv-items li::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: var(--azul3);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sv-precio {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--azul);
+}
+
+.sv-precio small {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.75rem;
+  color: var(--gris);
+  font-weight: 400;
+}
+
+.sv-check {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gris2);
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.sv-card.elegida .sv-check {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+
+.check-tick {
+  display: none;
+  width: 9px; height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.sv-card.elegida .check-tick { display: block; }
+
+/* ── COTIZADOR ── */
+#cotizar { background: var(--fondo); }
+
+.cot-container { max-width: 950px; margin: 0 auto; }
+
+.cot-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 780px) {
+  .cot-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+
+/* FORM */
+.form-bloque {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 2rem;
+  box-shadow: var(--sombra);
+}
+
+.form-sep {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--azul3);
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5px solid var(--gris2);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.form-sep:first-child { margin-top: 0; }
+
+.form-sep svg { width: 14px; height: 14px; }
+
+.fila { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.campo { margin-bottom: 1rem; }
+
+.campo label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--texto);
+  margin-bottom: 0.35rem;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  background: var(--fondo);
+  border: 1.5px solid var(--gris2);
+  color: var(--texto);
+  padding: 0.65rem 0.9rem;
+  border-radius: 9px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+
+.campo input:focus, .campo select:focus {
+  border-color: var(--azul3);
+  background: #fff;
+}
+
+.campo input::placeholder { color: #bbb; }
+
+.sel-wrap { position: relative; }
+.sel-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0.9rem; top: 50%;
+  transform: translateY(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--gris);
+  pointer-events: none;
+}
+
+/* EXTRAS */
+.extras-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.extra-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--fondo);
+  border: 1.5px solid var(--gris2);
+  border-radius: 9px;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.78rem;
+  color: var(--texto);
+  font-family: 'Nunito', sans-serif;
+}
+
+.extra-btn:hover { border-color: var(--azul3); }
+.extra-btn.on { border-color: var(--azul); background: var(--azulclaro); color: var(--azul); }
+
+.extra-caja {
+  width: 15px; height: 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.extra-btn.on .extra-caja {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+
+.extra-v {
+  width: 8px; height: 5px;
+  border-left: 1.5px solid #fff;
+  border-bottom: 1.5px solid #fff;
+  transform: rotate(-45deg) translate(0.5px, -0.5px);
+  display: none;
+}
+
+.extra-btn.on .extra-v { display: block; }
+.extra-nom { flex: 1; }
+.extra-p { font-weight: 700; color: var(--azul); font-size: 0.75rem; }
+
+/* RESUMEN */
+.resumen {
+  background: var(--azul);
+  border-radius: var(--radio);
+  padding: 1.75rem;
+  color: #fff;
+  position: sticky;
+  top: 72px;
+  box-shadow: 0 8px 32px rgba(13,71,161,0.25);
+}
+
+.res-titulo {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.res-linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.825rem;
+}
+
+.res-lbl { color: rgba(255,255,255,0.6); }
+.res-val { font-weight: 600; }
+
+.res-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.res-total-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.65);
+}
+
+.res-monto {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.res-monto small {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  display: block;
+  text-align: right;
+}
+
+.res-sep { height: 1px; background: rgba(255,255,255,0.15); margin: 1rem 0; }
+
+.horario-box {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 9px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.btn-enviar {
+  width: 100%;
+  background: #fff;
+  color: var(--azul);
+  padding: 0.9rem;
+  border: none;
+  border-radius: 100px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-enviar:hover { background: var(--azulclaro); transform: translateY(-2px); }
+
+.btn-enviar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* TABLA */
+#tabla { background: #fff; }
+.tb-container { max-width: 950px; margin: 0 auto; }
+
+.tb-wrap {
+  overflow-x: auto;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  border: 1.5px solid var(--gris2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 0.875rem;
+  min-width: 500px;
+}
+
+thead { background: var(--azul); }
+thead th {
+  color: #fff;
+  padding: 0.9rem 1.25rem;
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  letter-spacing: 1px;
+  font-size: 0.82rem;
+}
+
+tbody tr { border-bottom: 1px solid var(--gris2); transition: background 0.15s; }
+tbody tr:hover { background: var(--azulclaro); }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 0.8rem 1.25rem; color: var(--texto); }
+tbody td:last-child { font-weight: 700; color: var(--azul); }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,47,110,0.75);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal-box {
+  background: #fff;
+  border-radius: var(--radio);
+  padding: 2.5rem 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(13,71,161,0.3);
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-icono {
+  width: 64px; height: 64px;
+  background: #dcfce7;
+  border: 3px solid var(--verde);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.25rem;
+  font-size: 1.8rem;
+}
+
+.modal-box h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  color: var(--texto);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.5px;
+}
+
+.modal-box p { color: var(--gris); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.modal-detalles {
+  background: var(--fondo);
+  border-radius: 9px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.modal-linea {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.825rem;
+  padding: 0.3rem 0;
+}
+
+.modal-linea span:first-child { color: var(--gris); }
+.modal-linea span:last-child { font-weight: 600; color: var(--texto); }
+
+.modal-error { display: none; }
+.modal-error.show { display: flex; }
+.modal-error .modal-icono { background: #fee2e2; border-color: #ef4444; }
+
+.btn-cerrar {
+  width: 100%;
+  background: var(--azul);
+  color: #fff;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 100px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cerrar:hover { background: var(--azul2); }
+
+/* FOOTER */
+footer {
+  background: var(--azul);
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+  padding: 1.75rem 2rem;
+  font-size: 0.82rem;
+}
+
+footer strong { color: #fff; }
+
+/* ANIMACIONES */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-contenido > * {
+  animation: fadeUp 0.55s ease both;
+}
+
+.hero-badge    { animation-delay: 0.05s; }
+.hero h1       { animation-delay: 0.15s; }
+.hero p        { animation-delay: 0.25s; }
+.hero-btns     { animation-delay: 0.35s; }
+.hero-stats    { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-marca">
+    Plataforma Web para el Detallado Automotriz
+    <small>Servicios profesionales de limpieza y detallado</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#tabla">Precios</a></li>
+    <li><a href="#cotizar" class="nav-btn">Agendar</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-lines">
+    <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="gr" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#gr)"/>
+      <circle cx="200" cy="150" r="120" fill="none" stroke="white" stroke-width="0.8"/>
+      <circle cx="1000" cy="500" r="200" fill="none" stroke="white" stroke-width="0.8"/>
+      <circle cx="1100" cy="100" r="80" fill="none" stroke="white" stroke-width="0.5"/>
+    </svg>
+  </div>
+  <div class="hero-contenido">
+    <div class="hero-badge"><div class="dot-live"></div> Agenda en línea disponible</div>
+    <h1>Plataforma Web para el<br><span>Detallado Automotriz</span></h1>
+    <p>Servicios profesionales de limpieza y detallado. Agenda tu cita en minutos y dale a tu auto el cuidado que merece.</p>
+    <div class="hero-btns">
+      <a href="#cotizar" class="btn-hero">Agendar Cita</a>
+      <a href="#servicios" class="btn-hero2">Ver Servicios</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 17H3a1 1 0 01-1-1v-5l2.5-6h13L20 11v5a1 1 0 01-1 1h-2"/>
+            <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+            <path d="M7.5 11h9"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Autos y SUVs</span>
+          <span class="stat-l">Todos los vehículos</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Garantizado</span>
+          <span class="stat-l">Calidad asegurada</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">A domicilio</span>
+          <span class="stat-l">Vamos a tu lugar</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <path d="M3 9h18M9 4v5M15 4v5"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Lun – Sáb</span>
+          <span class="stat-l">8am · 6pm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="sv-container">
+    <div class="sv-header">
+      <div class="seccion-label">Catálogo</div>
+      <div class="seccion-titulo">Nuestros Servicios</div>
+      <p class="seccion-sub">Selecciona el plan que más se ajuste a tu vehículo y presupuesto.</p>
+    </div>
+
+    <div class="sv-filtros">
+      <button class="filtro-btn activo" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="filtrar('basico',this)">Básicos</button>
+      <button class="filtro-btn" onclick="filtrar('detallado',this)">Detallados</button>
+      <button class="filtro-btn" onclick="filtrar('especial',this)">Especiales</button>
+    </div>
+
+    <div class="sv-grid" id="svGrid"></div>
+  </div>
+</section>
+
+<!-- TABLA DE PRECIOS -->
+<section id="tabla">
+  <div class="tb-container">
+    <div style="margin-bottom:2rem;">
+      <div class="seccion-label">Referencia</div>
+      <div class="seccion-titulo">Tabla de Precios</div>
+      <p class="seccion-sub">Precios base sin extras ni cargos por tipo de vehículo.</p>
+    </div>
+    <div class="tb-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Servicio</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Básico Express</td><td>Lavado exterior + secado</td><td>$150 MXN</td></tr>
+          <tr><td>Básico Interior</td><td>Lavado exterior + aspirado interior</td><td>$120 MXN</td></tr>
+          <tr><td>Intermedio</td><td>Lavado + aspirado + brillo llantas + cera</td><td>$200 MXN</td></tr>
+          <tr><td>Premium</td><td>Lavado completo + tolvas + cajuela</td><td>$230 MXN</td></tr>
+          <tr><td>SUV / Camioneta</td><td>Lavado completo exterior</td><td>$220 MXN</td></tr>
+          <tr><td>Detallado Simple</td><td>Limpieza profunda + sanitización</td><td>$2,100 MXN</td></tr>
+          <tr><td>Detallado Premium</td><td>Incluye lavado de motor</td><td>$3,000 MXN</td></tr>
+          <tr><td>Detallado Diamante</td><td>Premium + encerado profesional</td><td>$3,500 MXN</td></tr>
+          <tr><td>Restauración de Faros</td><td>Pulido y sellado</td><td>$250 MXN</td></tr>
+          <tr><td>Hidratación de Piel</td><td>Tratamiento especial tapicería</td><td>$450 MXN</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COTIZADOR -->
+<section id="cotizar">
+  <div class="cot-container">
+    <div style="margin-bottom:2rem;">
+      <div class="seccion-label">Reserva en línea</div>
+      <div class="seccion-titulo">Agenda Tu Cita</div>
+      <p class="seccion-sub">Completa el formulario y recibirás una confirmación por correo.</p>
+    </div>
+
+    <div class="cot-grid">
+      <!-- FORMULARIO -->
+      <div class="form-bloque">
+
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 13c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+          Datos personales
+        </div>
+
+        <div class="campo">
+          <label>Nombre completo *</label>
+          <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
+        </div>
+
+        <div class="fila">
+          <div class="campo">
+            <label>Correo electrónico *</label>
+            <input type="email" id="correo" placeholder="tucorreo@ejemplo.com" required>
+          </div>
+          <div class="campo">
+            <label>Teléfono *</label>
+            <input type="tel" id="telefono" placeholder="+52 55 0000 0000" required>
+          </div>
+        </div>
+
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="10" rx="1.5"/><path d="M5 4V3a1 1 0 012 0v1M9 4V3a1 1 0 012 0v1"/><path d="M2 8h12"/></svg>
+          Detalle del servicio
+        </div>
+
+        <div class="campo">
+          <label>Servicio principal *</label>
+          <div class="sel-wrap">
+            <select id="servicio" onchange="recalc()">
+              <option value="150" data-n="Básico Express">Básico Express — $150</option>
+              <option value="120" data-n="Básico Interior">Básico Interior — $120</option>
+              <option value="200" data-n="Intermedio">Intermedio — $200</option>
+              <option value="230" data-n="Premium">Premium — $230</option>
+              <option value="220" data-n="SUV / Camioneta">SUV / Camioneta — $220</option>
+              <option value="2100" data-n="Detallado Simple">Detallado Simple — $2,100</option>
+              <option value="3000" data-n="Detallado Premium">Detallado Premium — $3,000</option>
+              <option value="3500" data-n="Detallado Diamante">Detallado Diamante — $3,500</option>
+              <option value="250" data-n="Restauración de Faros">Restauración de Faros — $250</option>
+              <option value="450" data-n="Hidratación de Piel">Hidratación de Piel — $450</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fila">
+          <div class="campo">
+            <label>Tipo de vehículo</label>
+            <div class="sel-wrap">
+              <select id="vehiculo" onchange="recalc()">
+                <option value="0">Auto / Sedan</option>
+                <option value="50">SUV / Camioneta (+$50)</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo">
+            <label>Tapicería</label>
+            <div class="sel-wrap">
+              <select id="tapiceria" onchange="recalc()">
+                <option value="0">Tela</option>
+                <option value="50">Piel (+$50)</option>
+                <option value="30">Vinil (+$30)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+          Servicios adicionales
+        </div>
+
+        <div class="extras-grid" id="extrasGrid"></div>
+
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 7h12M5 2v2M11 2v2"/></svg>
+          Fecha y hora
+        </div>
+
+        <div class="fila">
+          <div class="campo">
+            <label>Fecha *</label>
+            <input type="date" id="fecha" required>
+          </div>
+          <div class="campo">
+            <label>Hora * (8am – 6pm)</label>
+            <input type="time" id="hora" min="08:00" max="18:00" required>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RESUMEN -->
+      <div class="resumen">
+        <div class="res-titulo">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12l-1 9H3L2 4z"/><path d="M6 4V3a2 2 0 014 0v1"/></svg>
+          Tu Cotización
+        </div>
+
+        <div class="res-linea">
+          <span class="res-lbl">Servicio</span>
+          <span class="res-val" id="r-serv">Básico Express</span>
+        </div>
+        <div class="res-linea">
+          <span class="res-lbl">Vehículo</span>
+          <span class="res-val" id="r-veh">Auto / Sedan</span>
+        </div>
+        <div class="res-linea">
+          <span class="res-lbl">Tapicería</span>
+          <span class="res-val" id="r-tap">Tela</span>
+        </div>
+        <div class="res-linea" id="r-ext-linea" style="display:none;">
+          <span class="res-lbl">Extras</span>
+          <span class="res-val" id="r-ext">—</span>
+        </div>
+
+        <div class="res-sep"></div>
+
+        <div class="res-total">
+          <div>
+            <div class="res-total-lbl">Total estimado</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.45);">MXN · IVA incluido</div>
+          </div>
+          <div>
+            <div class="res-monto" id="r-total">$150<small>MXN</small></div>
+          </div>
+        </div>
+
+        <div class="res-sep"></div>
+
+        <div class="horario-box">
+          ⏰ Horario de atención: <strong style="color:#fff;">Lunes a Sábado</strong>, de <strong style="color:#fff;">8:00 AM a 6:00 PM</strong>. No trabajamos domingos.
+        </div>
+
+        <button class="btn-enviar" id="btnEnviar" onclick="enviarCita()">Confirmar y Enviar Cita →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>Plataforma Web para el Detallado Automotriz</strong> — Servicios profesionales de limpieza y detallado<br>
+  Horario: Lunes a Sábado · 8:00 AM – 6:00 PM
+</footer>
+
+<!-- MODAL ÉXITO -->
+<div class="modal-overlay" id="modalOk">
+  <div class="modal-box">
+    <div class="modal-icono">✓</div>
+    <h3>¡Cita Agendada!</h3>
+    <p>Te enviamos la confirmación a tu correo. ¡Nos vemos pronto!</p>
+    <div class="modal-detalles" id="modalDetalles"></div>
+    <button class="btn-cerrar" onclick="cerrar('modalOk')">Perfecto, gracias</button>
+  </div>
+</div>
+
+<!-- MODAL ERROR -->
+<div class="modal-overlay modal-error" id="modalErr">
+  <div class="modal-box">
+    <div class="modal-icono">✕</div>
+    <h3>Error al Enviar</h3>
+    <p>Hubo un problema al enviar tu cita. Por favor intenta de nuevo o contáctanos directamente.</p>
+    <button class="btn-cerrar" onclick="cerrar('modalErr')">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ── EmailJS ──────────────────────────────────
+(function(){
+  emailjs.init("TU_PUBLIC_KEY"); // 🔑 Reemplaza con tu Public Key
+})();
+
+const SERVICE_ID  = "TU_SERVICE_ID";   // 🔑 Reemplaza con tu Service ID
+const TEMPLATE_ID = "TU_TEMPLATE_ID";  // 🔑 Reemplaza con tu Template ID
+
+// ── Datos servicios ──────────────────────────
+const SERVICIOS = [
+  { cat:'basico',    nom:'Básico Express',        desc:'Lavado exterior completo con secado a mano y limpieza de cristales.',   precio:150,  items:['Lavado exterior','Secado a mano','Cristales'],           pop:false },
+  { cat:'basico',    nom:'Básico Interior',        desc:'Lavado exterior con aspirado profundo del habitáculo.',                 precio:120,  items:['Lavado exterior','Aspirado interior','Tablero'],          pop:false },
+  { cat:'basico',    nom:'Intermedio',             desc:'Servicio completo con brillo de llantas y encerado de carrocería.',    precio:200,  items:['Lavado + aspirado','Brillo llantas','Cera protectora'],  pop:true  },
+  { cat:'basico',    nom:'Premium',                desc:'Lavado completo incluyendo tolvas y cajuela.',                         precio:230,  items:['Lavado completo','Tolvas y cajuela','Acondicionado'],     pop:false },
+  { cat:'basico',    nom:'SUV / Camioneta',        desc:'Lavado exterior completo adaptado para vehículos grandes.',            precio:220,  items:['Lavado XL','Secado a mano','Cristales completos'],        pop:false },
+  { cat:'detallado', nom:'Detallado Simple',       desc:'Limpieza profunda y sanitización completa del vehículo.',              precio:2100, items:['Limpieza profunda','Sanitización','Ozono interior'],      pop:false },
+  { cat:'detallado', nom:'Detallado Premium',      desc:'Detallado profesional con lavado de motor incluido.',                  precio:3000, items:['Todo el Simple','Lavado de motor','Pulido carrocería'],   pop:true  },
+  { cat:'detallado', nom:'Detallado Diamante',     desc:'El servicio más completo con encerado profesional de larga duración.', precio:3500, items:['Todo el Premium','Encerado profesional','Protección'],  pop:false },
+  { cat:'especial',  nom:'Restauración de Faros',  desc:'Pulido y restauración de faros opacos o amarillentos.',               precio:250,  items:['Pulido profundo','Sellador aplicado','Claridad garantizada'], pop:false },
+  { cat:'especial',  nom:'Hidratación de Piel',    desc:'Tratamiento especial para tapicería de piel o cuero.',                precio:450,  items:['Limpieza suave','Hidratante premium','Protección UV'],    pop:false },
+];
+
+const EXTRAS = [
+  { id:'arom',    nom:'Aromatizante',   p:50  },
+  { id:'llan',    nom:'Brillo llantas', p:80  },
+  { id:'motor',   nom:'Lav. motor',     p:200 },
+  { id:'faros',   nom:'Rest. faros',    p:250 },
+  { id:'sella',   nom:'Sellado',        p:350 },
+  { id:'ozon',    nom:'Ozono',          p:150 },
+];
+
+let selExtras = {};
+
+// ── Render servicios ─────────────────────────
+function renderServicios(cat) {
+  const grid = document.getElementById('svGrid');
+  const lista = cat === 'todos' ? SERVICIOS : SERVICIOS.filter(s => s.cat === cat);
+  grid.innerHTML = lista.map(s => `
+    <div class="sv-card" onclick="elegirServicio(${s.precio},'${s.nom}',this)">
+      <div class="sv-check"><div class="check-tick"></div></div>
+      <div class="sv-etiqueta${s.pop?' pop':''}">
+        ${s.pop ? '★ Más solicitado' : s.cat === 'basico' ? 'Básico' : s.cat === 'detallado' ? 'Detallado' : 'Especial'}
+      </div>
+      <h3>${s.nom}</h3>
+      <p>${s.desc}</p>
+      <ul class="sv-items">${s.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      <div class="sv-precio">$${s.precio.toLocaleString('es-MX')}<small> MXN</small></div>
+    </div>
+  `).join('');
+}
+
+function filtrar(cat, btn) {
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  renderServicios(cat);
+}
+
+function elegirServicio(precio, nombre, card) {
+  document.querySelectorAll('.sv-card').forEach(c => c.classList.remove('elegida'));
+  card.classList.add('elegida');
+  const sel = document.getElementById('servicio');
+  for(let i = 0; i < sel.options.length; i++){
+    if(sel.options[i].dataset.n === nombre){ sel.selectedIndex = i; break; }
+  }
+  recalc();
+  document.getElementById('cotizar').scrollIntoView({ behavior:'smooth' });
+}
+
+// ── Render extras ─────────────────────────────
+function renderExtras() {
+  document.getElementById('extrasGrid').innerHTML = EXTRAS.map(e => `
+    <button class="extra-btn" id="ex-${e.id}" onclick="toggleExtra('${e.id}',${e.p},this)">
+      <div class="extra-caja"><div class="extra-v"></div></div>
+      <span class="extra-nom">${e.nom}</span>
+      <span class="extra-p">+$${e.p}</span>
+    </button>
+  `).join('');
+}
+
+function toggleExtra(id, p, btn) {
+  if(selExtras[id]){ delete selExtras[id]; btn.classList.remove('on'); }
+  else { selExtras[id] = p; btn.classList.add('on'); }
+  recalc();
+}
+
+// ── Calcular total ───────────────────────────
+function recalc() {
+  const sel  = document.getElementById('servicio');
+  const veh  = document.getElementById('vehiculo');
+  const tap  = document.getElementById('tapiceria');
+  const base = parseInt(sel.value);
+  const vPlus = parseInt(veh.value);
+  const tPlus = parseInt(tap.value);
+  const extTotal = Object.values(selExtras).reduce((a,b)=>a+b,0);
+  const total = base + vPlus + tPlus + extTotal;
+
+  document.getElementById('r-serv').textContent = sel.options[sel.selectedIndex].dataset.n;
+  document.getElementById('r-veh').textContent  = veh.options[veh.selectedIndex].text.split(' (')[0];
+  document.getElementById('r-tap').textContent  = tap.options[tap.selectedIndex].text.split(' (')[0];
+  document.getElementById('r-total').innerHTML  = '$' + total.toLocaleString('es-MX') + '<small>MXN</small>';
+
+  const extL = document.getElementById('r-ext-linea');
+  if(extTotal > 0){
+    extL.style.display = 'flex';
+    document.getElementById('r-ext').textContent = '+$' + extTotal.toLocaleString('es-MX');
+  } else {
+    extL.style.display = 'none';
+  }
+}
+
+// ── Enviar cita ──────────────────────────────
+function enviarCita() {
+  const nombre   = document.getElementById('nombre').value.trim();
+  const correo   = document.getElementById('correo').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const fecha    = document.getElementById('fecha').value;
+  const hora     = document.getElementById('hora').value;
+
+  if(!nombre || !correo || !telefono || !fecha || !hora){
+    alert('Por favor completa todos los campos obligatorios (*).');
+    return;
+  }
+
+  const horaNum = parseInt(hora.split(':')[0]);
+  if(horaNum < 8 || horaNum >= 18){
+    alert('El horario de atención es de 8:00 AM a 6:00 PM.');
+    return;
+  }
+
+  const sel = document.getElementById('servicio');
+  const servicioNom = sel.options[sel.selectedIndex].dataset.n;
+  const veh = document.getElementById('vehiculo');
+  const tap = document.getElementById('tapiceria');
+  const totalTexto = document.getElementById('r-total').textContent.replace('MXN','').trim();
+  const extrasNombres = Object.keys(selExtras).map(id => EXTRAS.find(e=>e.id===id)?.nom).join(', ') || 'Ninguno';
+
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const params = {
+    nombre,
+    correo,
+    telefono,
+    servicio: servicioNom,
+    vehiculo: veh.options[veh.selectedIndex].text.split(' (')[0],
+    tapiceria: tap.options[tap.selectedIndex].text.split(' (')[0],
+    extras: extrasNombres,
+    fecha,
+    hora,
+    total: totalTexto + ' MXN'
+  };
+
+  emailjs.send(SERVICE_ID, TEMPLATE_ID, params)
+    .then(() => {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar y Enviar Cita →';
+
+      document.getElementById('modalDetalles').innerHTML = `
+        <div class="modal-linea"><span>Cliente</span><span>${nombre}</span></div>
+        <div class="modal-linea"><span>Correo</span><span>${correo}</span></div>
+        <div class="modal-linea"><span>Servicio</span><span>${servicioNom}</span></div>
+        <div class="modal-linea"><span>Fecha</span><span>${fecha}</span></div>
+        <div class="modal-linea"><span>Hora</span><span>${hora}</span></div>
+        <div class="modal-linea"><span>Total</span><span>${totalTexto} MXN</span></div>
+      `;
+      document.getElementById('modalOk').classList.add('show');
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar y Enviar Cita →';
+      document.getElementById('modalErr').classList.add('show');
+    });
+}
+
+function cerrar(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// ── Init ─────────────────────────────────────
+const hoy = new Date().toISOString().split('T')[0];
+document.getElementById('fecha').setAttribute('min', hoy);
+
+renderServicios('todos');
+renderExtras();
+recalc();
+</script>
+</body>
+</html>

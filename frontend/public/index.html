@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma Web para el Detallado Automotriz</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-marca">
+    Plataforma Web para el Detallado Automotriz
+    <small>Servicios profesionales de limpieza y detallado</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#tabla">Precios</a></li>
+    <li><a href="#cotizar" class="nav-btn">Agendar</a></li>
+    <li><a href="/admin">Admin</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-lines">
+    <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="gr" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#gr)"/>
+      <circle cx="200" cy="150" r="120" fill="none" stroke="white" stroke-width="0.8"/>
+      <circle cx="1000" cy="500" r="200" fill="none" stroke="white" stroke-width="0.8"/>
+      <circle cx="1100" cy="100" r="80" fill="none" stroke="white" stroke-width="0.5"/>
+    </svg>
+  </div>
+  <div class="hero-contenido">
+    <div class="hero-badge"><div class="dot-live"></div> Agenda en línea disponible</div>
+    <h1>Plataforma Web para el<br><span>Detallado Automotriz</span></h1>
+    <p>Servicios profesionales de limpieza y detallado. Agenda tu cita en minutos y dale a tu auto el cuidado que merece.</p>
+    <div class="hero-btns">
+      <a href="#cotizar" class="btn-hero">Agendar Cita</a>
+      <a href="#servicios" class="btn-hero2">Ver Servicios</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 17H3a1 1 0 01-1-1v-5l2.5-6h13L20 11v5a1 1 0 01-1 1h-2"/>
+            <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+            <path d="M7.5 11h9"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Autos y SUVs</span>
+          <span class="stat-l">Todos los vehículos</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Garantizado</span>
+          <span class="stat-l">Calidad asegurada</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">A domicilio</span>
+          <span class="stat-l">Vamos a tu lugar</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#42a5f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <path d="M3 9h18M9 4v5M15 4v5"/>
+          </svg>
+        </div>
+        <div class="stat-texto">
+          <span class="stat-n">Lun – Sáb</span>
+          <span class="stat-l">8am · 6pm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="servicios">
+  <div class="sv-container">
+    <div class="sv-header">
+      <div class="seccion-label">Catálogo</div>
+      <div class="seccion-titulo">Nuestros Servicios</div>
+      <p class="seccion-sub">Selecciona el plan que más se ajuste a tu vehículo y presupuesto.</p>
+    </div>
+    <div class="sv-filtros">
+      <button class="filtro-btn activo" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="filtrar('basico',this)">Básicos</button>
+      <button class="filtro-btn" onclick="filtrar('detallado',this)">Detallados</button>
+      <button class="filtro-btn" onclick="filtrar('especial',this)">Especiales</button>
+    </div>
+    <div class="sv-grid" id="svGrid"></div>
+  </div>
+</section>
+
+<section id="tabla">
+  <div class="tb-container">
+    <div style="margin-bottom:2rem;">
+      <div class="seccion-label">Referencia</div>
+      <div class="seccion-titulo">Tabla de Precios</div>
+      <p class="seccion-sub">Precios base sin extras ni cargos por tipo de vehículo.</p>
+    </div>
+    <div class="tb-wrap">
+      <table>
+        <thead>
+          <tr><th>Servicio</th><th>Descripción</th><th>Precio</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Básico Express</td><td>Lavado exterior + secado</td><td>$150 MXN</td></tr>
+          <tr><td>Básico Interior</td><td>Lavado exterior + aspirado interior</td><td>$120 MXN</td></tr>
+          <tr><td>Intermedio</td><td>Lavado + aspirado + brillo llantas + cera</td><td>$200 MXN</td></tr>
+          <tr><td>Premium</td><td>Lavado completo + tolvas + cajuela</td><td>$230 MXN</td></tr>
+          <tr><td>SUV / Camioneta</td><td>Lavado completo exterior</td><td>$220 MXN</td></tr>
+          <tr><td>Detallado Simple</td><td>Limpieza profunda + sanitización</td><td>$2,100 MXN</td></tr>
+          <tr><td>Detallado Premium</td><td>Incluye lavado de motor</td><td>$3,000 MXN</td></tr>
+          <tr><td>Detallado Diamante</td><td>Premium + encerado profesional</td><td>$3,500 MXN</td></tr>
+          <tr><td>Restauración de Faros</td><td>Pulido y sellado</td><td>$250 MXN</td></tr>
+          <tr><td>Hidratación de Piel</td><td>Tratamiento especial tapicería</td><td>$450 MXN</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="cotizar">
+  <div class="cot-container">
+    <div style="margin-bottom:2rem;">
+      <div class="seccion-label">Reserva en línea</div>
+      <div class="seccion-titulo">Agenda Tu Cita</div>
+      <p class="seccion-sub">Completa el formulario y recibirás una confirmación con folio.</p>
+    </div>
+    <div class="cot-grid">
+      <div class="form-bloque">
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 13c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+          Datos personales
+        </div>
+        <div class="campo">
+          <label>Nombre completo *</label>
+          <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
+        </div>
+        <div class="fila">
+          <div class="campo">
+            <label>Correo electrónico *</label>
+            <input type="email" id="correo" placeholder="tucorreo@ejemplo.com" required>
+          </div>
+          <div class="campo">
+            <label>Teléfono *</label>
+            <input type="tel" id="telefono" placeholder="+52 55 0000 0000" required>
+          </div>
+        </div>
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="10" rx="1.5"/><path d="M5 4V3a1 1 0 012 0v1M9 4V3a1 1 0 012 0v1"/><path d="M2 8h12"/></svg>
+          Detalle del servicio
+        </div>
+        <div class="campo">
+          <label>Servicio principal *</label>
+          <div class="sel-wrap">
+            <select id="servicio" onchange="recalc()"></select>
+          </div>
+        </div>
+        <div class="fila">
+          <div class="campo">
+            <label>Tipo de vehículo</label>
+            <div class="sel-wrap">
+              <select id="vehiculo" onchange="recalc()">
+                <option value="0">Auto / Sedan</option>
+                <option value="50">SUV / Camioneta (+$50)</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo">
+            <label>Tapicería</label>
+            <div class="sel-wrap">
+              <select id="tapiceria" onchange="recalc()">
+                <option value="0">Tela</option>
+                <option value="50">Piel (+$50)</option>
+                <option value="30">Vinil (+$30)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+          Servicios adicionales
+        </div>
+        <div class="extras-grid" id="extrasGrid"></div>
+        <div class="form-sep">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 7h12M5 2v2M11 2v2"/></svg>
+          Fecha y hora
+        </div>
+        <div class="fila">
+          <div class="campo">
+            <label>Fecha *</label>
+            <input type="date" id="fecha" required>
+          </div>
+          <div class="campo">
+            <label>Hora * (8am – 6pm)</label>
+            <input type="time" id="hora" min="08:00" max="18:00" required>
+          </div>
+        </div>
+      </div>
+      <div class="resumen">
+        <div class="res-titulo">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12l-1 9H3L2 4z"/><path d="M6 4V3a2 2 0 014 0v1"/></svg>
+          Tu Cotización
+        </div>
+        <div class="res-linea"><span class="res-lbl">Servicio</span><span class="res-val" id="r-serv">—</span></div>
+        <div class="res-linea"><span class="res-lbl">Vehículo</span><span class="res-val" id="r-veh">Auto / Sedan</span></div>
+        <div class="res-linea"><span class="res-lbl">Tapicería</span><span class="res-val" id="r-tap">Tela</span></div>
+        <div class="res-linea" id="r-ext-linea" style="display:none;">
+          <span class="res-lbl">Extras</span><span class="res-val" id="r-ext">—</span>
+        </div>
+        <div class="res-sep"></div>
+        <div class="res-total">
+          <div>
+            <div class="res-total-lbl">Total estimado</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.45);">MXN · IVA incluido</div>
+          </div>
+          <div><div class="res-monto" id="r-total">$150<small>MXN</small></div></div>
+        </div>
+        <div class="res-sep"></div>
+        <div class="horario-box">
+          ⏰ Horario de atención: <strong style="color:#fff;">Lunes a Sábado</strong>, de <strong style="color:#fff;">8:00 AM a 6:00 PM</strong>. No trabajamos domingos.
+        </div>
+        <button class="btn-enviar" id="btnEnviar" onclick="enviarCita()">Confirmar y Enviar Cita →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>Plataforma Web para el Detallado Automotriz</strong> — Servicios profesionales de limpieza y detallado<br>
+  Horario: Lunes a Sábado · 8:00 AM – 6:00 PM
+</footer>
+
+<div class="modal-overlay" id="modalOk">
+  <div class="modal-box">
+    <div class="modal-icono">✓</div>
+    <h3>¡Cita Agendada!</h3>
+    <p>Tu cita quedó registrada. Guarda tu folio de confirmación.</p>
+    <div class="modal-detalles" id="modalDetalles"></div>
+    <button class="btn-cerrar" onclick="cerrar('modalOk')">Perfecto, gracias</button>
+  </div>
+</div>
+
+<div class="modal-overlay modal-error" id="modalErr">
+  <div class="modal-box">
+    <div class="modal-icono">✕</div>
+    <h3>Error al Enviar</h3>
+    <p>Hubo un problema al registrar tu cita. Por favor intenta de nuevo.</p>
+    <button class="btn-cerrar" onclick="cerrar('modalErr')">Cerrar</button>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
