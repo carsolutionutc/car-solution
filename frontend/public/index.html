@@ -3,21 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plataforma Web para el Detallado Automotriz</title>
+<title>Car Solution — Detallado Automotriz</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 </head>
 <body>
 
 <nav>
   <div class="nav-marca">
-    Plataforma Web para el Detallado Automotriz
-    <small>Servicios profesionales de limpieza y detallado</small>
+    Car Solution
+    <small>Detallado automotriz profesional</small>
   </div>
   <ul class="nav-links">
     <li><a href="#servicios">Servicios</a></li>
-    <li><a href="#tabla">Precios</a></li>
     <li><a href="#cotizar" class="nav-btn">Agendar</a></li>
     <li><a href="/admin">Admin</a></li>
   </ul>
@@ -39,8 +37,8 @@
   </div>
   <div class="hero-contenido">
     <div class="hero-badge"><div class="dot-live"></div> Agenda en línea disponible</div>
-    <h1>Plataforma Web para el<br><span>Detallado Automotriz</span></h1>
-    <p>Servicios profesionales de limpieza y detallado. Agenda tu cita en minutos y dale a tu auto el cuidado que merece.</p>
+    <h1>Cuidado profesional<br><span>para tu vehículo</span></h1>
+    <p>Servicios de limpieza y detallado automotriz. Agenda tu cita en minutos y recibe confirmación por correo.</p>
     <div class="hero-btns">
       <a href="#cotizar" class="btn-hero">Agendar Cita</a>
       <a href="#servicios" class="btn-hero2">Ver Servicios</a>
@@ -112,34 +110,17 @@
       <button class="filtro-btn" onclick="filtrar('especial',this)">Especiales</button>
     </div>
     <div class="sv-grid" id="svGrid"></div>
-  </div>
-</section>
 
-<section id="tabla">
-  <div class="tb-container">
-    <div style="margin-bottom:2rem;">
-      <div class="seccion-label">Referencia</div>
-      <div class="seccion-titulo">Tabla de Precios</div>
-      <p class="seccion-sub">Precios base sin extras ni cargos por tipo de vehículo.</p>
-    </div>
-    <div class="tb-wrap">
-      <table>
-        <thead>
-          <tr><th>Servicio</th><th>Descripción</th><th>Precio</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Básico Express</td><td>Lavado exterior + secado</td><td>$150 MXN</td></tr>
-          <tr><td>Básico Interior</td><td>Lavado exterior + aspirado interior</td><td>$120 MXN</td></tr>
-          <tr><td>Intermedio</td><td>Lavado + aspirado + brillo llantas + cera</td><td>$200 MXN</td></tr>
-          <tr><td>Premium</td><td>Lavado completo + tolvas + cajuela</td><td>$230 MXN</td></tr>
-          <tr><td>SUV / Camioneta</td><td>Lavado completo exterior</td><td>$220 MXN</td></tr>
-          <tr><td>Detallado Simple</td><td>Limpieza profunda + sanitización</td><td>$2,100 MXN</td></tr>
-          <tr><td>Detallado Premium</td><td>Incluye lavado de motor</td><td>$3,000 MXN</td></tr>
-          <tr><td>Detallado Diamante</td><td>Premium + encerado profesional</td><td>$3,500 MXN</td></tr>
-          <tr><td>Restauración de Faros</td><td>Pulido y sellado</td><td>$250 MXN</td></tr>
-          <tr><td>Hidratación de Piel</td><td>Tratamiento especial tapicería</td><td>$450 MXN</td></tr>
-        </tbody>
-      </table>
+    <div class="sv-costos-nota">
+      <h3>Costos adicionales</h3>
+      <p>Los precios mostrados son base. Al agendar puedes sumar cargos según tu vehículo y tapicería:</p>
+      <ul>
+        <li><strong>Tipo de vehículo:</strong> SUV / Camioneta <span>+$50 MXN</span></li>
+        <li><strong>Tapicería de piel:</strong> <span>+$50 MXN</span></li>
+        <li><strong>Tapicería de vinil:</strong> <span>+$30 MXN</span></li>
+        <li><strong>Servicios adicionales:</strong> aromatizante, brillo de llantas, ozono, etc. (desde +$50 MXN)</li>
+      </ul>
+      <p class="sv-costos-hint">El total se calcula automáticamente en el formulario de agendamiento.</p>
     </div>
   </div>
 </section>
@@ -149,7 +130,7 @@
     <div style="margin-bottom:2rem;">
       <div class="seccion-label">Reserva en línea</div>
       <div class="seccion-titulo">Agenda Tu Cita</div>
-      <p class="seccion-sub">Completa el formulario y recibirás una confirmación con folio.</p>
+      <p class="seccion-sub">Completa el formulario y recibirás un recibo por correo con tu folio de confirmación.</p>
     </div>
     <div class="cot-grid">
       <div class="form-bloque">
@@ -252,7 +233,7 @@
 </section>
 
 <footer>
-  <strong>Plataforma Web para el Detallado Automotriz</strong> — Servicios profesionales de limpieza y detallado<br>
+  <strong>Car Solution</strong> — Servicios profesionales de detallado automotriz<br>
   Horario: Lunes a Sábado · 8:00 AM – 6:00 PM
 </footer>
 
@@ -260,7 +241,7 @@
   <div class="modal-box">
     <div class="modal-icono">✓</div>
     <h3>¡Cita Agendada!</h3>
-    <p>Tu cita quedó registrada. Guarda tu folio de confirmación.</p>
+    <p id="modalOkText">Tu cita quedó registrada. Revisa tu correo para el recibo con tu folio.</p>
     <div class="modal-detalles" id="modalDetalles"></div>
     <button class="btn-cerrar" onclick="cerrar('modalOk')">Perfecto, gracias</button>
   </div>

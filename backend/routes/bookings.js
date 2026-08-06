@@ -1,5 +1,6 @@
 const express = require('express');
 const getSupabase = require('../db/supabase');
+const { sendBookingReceipt } = require('../services/gmail');
 
 const router = express.Router();
 
@@ -102,6 +103,22 @@ router.post('/', async (req, res) => {
       if (extErr) console.error('booking_extras:', extErr.message);
     }
 
+    const extrasNombres = req.body.extrasNombres || [];
+
+    const emailResult = await sendBookingReceipt({
+      folio: booking.folio,
+      nombre: booking.nombre,
+      email: booking.email,
+      telefono: booking.telefono,
+      servicio: service.nombre,
+      vehiculoTipo,
+      tapiceria,
+      extrasNombres,
+      fecha: booking.fecha,
+      hora: String(booking.hora).slice(0, 5),
+      total: Number(booking.total),
+    });
+
     res.status(201).json({
       id: booking.id,
       folio: booking.folio,
@@ -112,6 +129,7 @@ router.post('/', async (req, res) => {
       hora: booking.hora,
       total: Number(booking.total),
       status: booking.status,
+      emailSent: emailResult.sent,
     });
   } catch (err) {
     console.error('POST /api/bookings:', err.message);

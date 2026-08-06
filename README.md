@@ -80,9 +80,70 @@ Abre en el navegador:
 | GET | `/api/admin/bookings` | JWT | Listado de citas |
 | PATCH | `/api/admin/bookings/:id/status` | JWT | Cambiar estado |
 
-## EmailJS (opcional)
+## 6. Configurar Gmail API (recibo por correo)
 
-Si quieres correos al agendar, configura EmailJS y edita `EMAILJS` en `frontend/public/js/app.js`.
+### A. Google Cloud Console
+
+1. Ve a [console.cloud.google.com](https://console.cloud.google.com)
+2. Crea un proyecto (ej. `car-solution-mail`)
+3. **APIs & Services → Library** → busca **Gmail API** → **Enable**
+4. **OAuth consent screen**:
+   - User Type: **External**
+   - App name: `Car Solution`
+   - Agrega tu Gmail como **Test user**
+5. **Credentials → Create Credentials → OAuth client ID**:
+   - Type: **Web application**
+   - Authorized redirect URI: `http://127.0.0.1:3333`
+6. Copia **Client ID** y **Client Secret** a tu `.env`:
+
+```
+GMAIL_CLIENT_ID=xxx.apps.googleusercontent.com
+GMAIL_CLIENT_SECRET=GOCSPX-xxx
+GMAIL_USER=carsolutionutc@gmail.com
+GMAIL_NOTIFY_TO=carsolutionutc@gmail.com
+```
+
+### B. Obtener refresh token (una sola vez, en local)
+
+```bash
+cd backend
+npm run gmail:auth
+```
+
+1. Abre la URL que imprime la terminal
+2. Autoriza con la cuenta Gmail del negocio
+3. Copia el `GMAIL_REFRESH_TOKEN` que aparece → pégalo en `.env`
+
+### C. Variables en Render
+
+Agrega las mismas variables Gmail en **Environment** del servicio (marca como Secret las sensibles):
+
+| Variable | Descripción |
+|----------|-------------|
+| `GMAIL_CLIENT_ID` | OAuth Client ID |
+| `GMAIL_CLIENT_SECRET` | OAuth Client Secret |
+| `GMAIL_REFRESH_TOKEN` | Token del script `gmail:auth` |
+| `GMAIL_USER` | Correo que envía (ej. carsolutionutc@gmail.com) |
+| `GMAIL_NOTIFY_TO` | Opcional — copia al negocio en cada cita |
+
+> El refresh token se genera en local; no hace falta repetir el script en Render.
+
+## 7. Subir cambios a GitHub
+
+```powershell
+cd "C:\Users\kuri-\Desktop\Car Solution"
+
+git add .
+git commit -m "Rebrand Car Solution, quitar tabla precios, recibo por Gmail API"
+git push origin main
+```
+
+Si usas la cuenta `carsolutionutc` con SSH:
+
+```powershell
+git remote set-url origin git@github-carsolution:carsolutionutc/car-solution.git
+git push origin main
+```
 
 ## Archivo original
 

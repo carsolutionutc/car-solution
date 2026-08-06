@@ -403,7 +403,55 @@ section { padding: 5rem 2rem; }
 
 .sv-card.elegida .check-tick { display: block; }
 
-/* â”€â”€ COTIZADOR â”€â”€ */
+.sv-costos-nota {
+  margin-top: 3rem;
+  background: var(--azulclaro);
+  border: 1.5px solid rgba(13,71,161,0.15);
+  border-radius: var(--radio);
+  padding: 1.75rem 2rem;
+}
+
+.sv-costos-nota h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.25rem;
+  color: var(--azul);
+  margin-bottom: 0.75rem;
+}
+
+.sv-costos-nota p {
+  color: var(--gris);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.sv-costos-nota ul {
+  list-style: none;
+  margin-bottom: 1rem;
+}
+
+.sv-costos-nota li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(13,71,161,0.08);
+  font-size: 0.875rem;
+  color: var(--texto);
+  gap: 1rem;
+}
+
+.sv-costos-nota li span {
+  font-weight: 700;
+  color: var(--azul);
+  white-space: nowrap;
+}
+
+.sv-costos-hint {
+  font-size: 0.8rem !important;
+  margin-bottom: 0 !important;
+  font-style: italic;
+}
+
 #cotizar { background: var(--fondo); }
 
 .cot-container { max-width: 950px; margin: 0 auto; }

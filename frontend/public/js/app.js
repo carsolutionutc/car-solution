@@ -2,12 +2,6 @@ let SERVICIOS = [];
 let EXTRAS = [];
 let selExtras = {};
 
-const EMAILJS = {
-  publicKey: '',
-  serviceId: '',
-  templateId: '',
-};
-
 async function initApp() {
   try {
     const data = await apiGet('/api/services');
@@ -90,7 +84,7 @@ function toggleExtra(slug, extraId, p, btn) {
     delete selExtras[slug];
     btn.classList.remove('on');
   } else {
-    selExtras[slug] = { extraId, precio: p };
+    selExtras[slug] = { extraId, precio: p, nom: EXTRAS.find((e) => e.id === slug)?.nom };
     btn.classList.add('on');
   }
   recalc();
@@ -153,6 +147,8 @@ async function enviarCita() {
     precio: e.precio,
   }));
 
+  const extrasNombres = Object.values(selExtras).map((e) => e.nom).filter(Boolean);
+
   const btn = document.getElementById('btnEnviar');
   btn.disabled = true;
   btn.textContent = 'Enviando...';
@@ -171,9 +167,12 @@ async function enviarCita() {
       hora,
       total,
       extras: extrasPayload,
+      extrasNombres,
     });
 
-    await sendEmailNotification(booking, correo, telefono, veh, tap, extTotal);
+    document.getElementById('modalOkText').textContent = booking.emailSent
+      ? 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con tu folio.'
+      : 'Tu cita quedó registrada. Guarda tu folio de confirmación.';
 
     document.getElementById('modalDetalles').innerHTML = `
       <div class="modal-linea"><span>Folio</span><span>${booking.folio}</span></div>
@@ -191,33 +190,6 @@ async function enviarCita() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Confirmar y Enviar Cita →';
-  }
-}
-
-async function sendEmailNotification(booking, correo, telefono, veh, tap, extTotal) {
-  if (!window.emailjs || !EMAILJS.publicKey || EMAILJS.publicKey === 'TU_PUBLIC_KEY') return;
-
-  const extrasNombres = Object.keys(selExtras)
-    .map((id) => EXTRAS.find((e) => e.id === id)?.nom)
-    .filter(Boolean)
-    .join(', ') || 'Ninguno';
-
-  try {
-    await emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, {
-      nombre: booking.nombre,
-      correo,
-      telefono,
-      servicio: booking.servicio,
-      vehiculo: veh.options[veh.selectedIndex].text.split(' (')[0],
-      tapiceria: tap.options[tap.selectedIndex].text.split(' (')[0],
-      extras: extrasNombres,
-      fecha: booking.fecha,
-      hora: booking.hora,
-      total: '$' + booking.total.toLocaleString('es-MX') + ' MXN',
-      folio: booking.folio,
-    });
-  } catch (e) {
-    console.warn('EmailJS no configurado o falló:', e);
   }
 }
 
