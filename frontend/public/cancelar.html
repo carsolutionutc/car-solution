@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancelar cita — Car Solution</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/cancelar.css">
+</head>
+<body class="cancelar-body">
+
+<nav>
+  <div class="nav-marca">
+    Car Solution
+    <small>Cancelación de cita</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/">← Volver al inicio</a></li>
+  </ul>
+</nav>
+
+<div class="cancelar-wrap">
+  <div class="cancelar-box">
+    <h1>Cancelar cita</h1>
+    <p>Ingresa el folio que recibiste en tu correo de confirmación.</p>
+
+    <div id="cancelError" class="cancel-msg error hidden"></div>
+    <div id="cancelSuccess" class="cancel-msg ok hidden"></div>
+
+    <div class="campo">
+      <label>Folio de cita *</label>
+      <input type="text" id="folioInput" placeholder="Ej. CIT-20260809-0001">
+    </div>
+    <button class="btn-enviar" id="btnBuscar">Verificar folio</button>
+
+    <div id="bookingInfo" class="booking-info hidden">
+      <h3>Confirma que es tu cita</h3>
+      <div id="bookingDetails"></div>
+
+      <div class="campo" style="margin-top:1.25rem;">
+        <label>Motivo de cancelación *</label>
+        <textarea id="motivoInput" rows="4" placeholder="Describe brevemente por qué deseas cancelar (obligatorio)"></textarea>
+      </div>
+
+      <button class="btn-cancelar-cita" id="btnCancelar">Cancelar cita</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/cancelar.js"></script>
+</body>
+</html>

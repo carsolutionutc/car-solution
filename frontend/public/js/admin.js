@@ -1,5 +1,8 @@
 const TOKEN_KEY = 'car_solution_admin_token';
 let charts = {};
+let currentPeriod = 'all';
+let customFrom = '';
+let customTo = '';
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -29,10 +32,46 @@ function formatMoney(n) {
   return '$' + Number(n).toLocaleString('es-MX');
 }
 
-function renderKPIs(kpis) {
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-MX', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+}
+
+function analyticsQuery() {
+  const params = new URLSearchParams({ period: currentPeriod });
+  if (currentPeriod === 'custom') {
+    if (customFrom) params.set('from', customFrom);
+    if (customTo) params.set('to', customTo);
+  }
+  return `/api/admin/analytics?${params}`;
+}
+
+function bookingsQuery() {
+  const folio = document.getElementById('searchFolio').value.trim();
+  const status = document.getElementById('filterStatus').value;
+  const params = new URLSearchParams();
+  if (folio) params.set('folio', folio);
+  if (status && status !== 'todos') params.set('status', status);
+  const qs = params.toString();
+  return `/api/admin/bookings${qs ? `?${qs}` : ''}`;
+}
+
+function renderKPIs(kpis, period) {
+  const periodLabel = {
+    '1d': 'último día',
+    '1w': 'última semana',
+    '1m': 'último mes',
+    '1y': 'último año',
+    all: 'total',
+    custom: 'periodo seleccionado',
+  }[period] || 'periodo';
+
   document.getElementById('kpiGrid').innerHTML = `
     <div class="kpi-card ok">
-      <div class="kpi-label">Ingresos del mes</div>
+      <div class="kpi-label">Ingresos (${periodLabel})</div>
       <div class="kpi-value">${formatMoney(kpis.ingresosMes)}</div>
       <div class="kpi-sub">Citas completadas</div>
     </div>
@@ -144,7 +183,7 @@ function renderCharts(data) {
 function renderBookings(bookings) {
   const tbody = document.getElementById('bookingsBody');
   if (!bookings.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gris);">No hay citas registradas aún</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gris);">No hay citas con esos filtros</td></tr>';
     return;
   }
 
@@ -156,7 +195,8 @@ function renderBookings(bookings) {
       <td>${b.fecha} ${String(b.hora).slice(0, 5)}</td>
       <td>${formatMoney(b.total)}</td>
       <td><span class="status-badge status-${b.status}">${b.status}</span></td>
-      <td>
+      <td class="actions-cell">
+        <button class="btn-view" onclick="verCita('${b.id}')">Ver cita</button>
         <select class="status-select" data-id="${b.id}" onchange="cambiarEstado(this)">
           <option value="pendiente" ${b.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
           <option value="confirmada" ${b.status === 'confirmada' ? 'selected' : ''}>Confirmada</option>
@@ -168,17 +208,28 @@ function renderBookings(bookings) {
   `).join('');
 }
 
+async function loadBookingsTable() {
+  const token = getToken();
+  if (!token) return;
+  try {
+    const bookings = await adminGet(bookingsQuery(), token);
+    renderBookings(bookings);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 async function loadDashboard() {
   const token = getToken();
   if (!token) return showLogin();
 
   try {
     const [analytics, bookings] = await Promise.all([
-      adminGet('/api/admin/analytics', token),
-      adminGet('/api/admin/bookings', token),
+      adminGet(analyticsQuery(), token),
+      adminGet(bookingsQuery(), token),
     ]);
 
-    renderKPIs(analytics.kpis);
+    renderKPIs(analytics.kpis, currentPeriod);
     renderCharts(analytics);
     renderBookings(bookings);
     showDashboard();
@@ -186,6 +237,47 @@ async function loadDashboard() {
     clearToken();
     showLogin();
   }
+}
+
+async function verCita(id) {
+  const token = getToken();
+  try {
+    const b = await adminGet(`/api/admin/bookings/${id}`, token);
+    const extras = (b.booking_extras || [])
+      .map((e) => `${e.extras?.nombre} (+$${Number(e.precio).toLocaleString('es-MX')})`)
+      .join(', ') || 'Ninguno';
+
+    let html = `
+      <div class="modal-linea"><span>Folio</span><span>${b.folio}</span></div>
+      <div class="modal-linea"><span>Cliente</span><span>${b.nombre}</span></div>
+      <div class="modal-linea"><span>Correo</span><span>${b.email}</span></div>
+      <div class="modal-linea"><span>Teléfono</span><span>${b.telefono}</span></div>
+      <div class="modal-linea"><span>Servicio</span><span>${b.services?.nombre || '—'}</span></div>
+      <div class="modal-linea"><span>Vehículo</span><span>${b.vehiculo_tipo}</span></div>
+      <div class="modal-linea"><span>Tapicería</span><span>${b.tapiceria}</span></div>
+      <div class="modal-linea"><span>Extras</span><span>${extras}</span></div>
+      <div class="modal-linea"><span>Fecha cita</span><span>${b.fecha} ${String(b.hora).slice(0, 5)}</span></div>
+      <div class="modal-linea"><span>Registrada</span><span>${formatDateTime(b.created_at)}</span></div>
+      <div class="modal-linea"><span>Total</span><span>${formatMoney(b.total)} MXN</span></div>
+      <div class="modal-linea"><span>Estado</span><span>${b.status}</span></div>
+    `;
+
+    if (b.status === 'cancelada') {
+      html += `
+        <div class="modal-linea"><span>Cancelada</span><span>${formatDateTime(b.cancelled_at)}</span></div>
+        <div class="modal-linea modal-motivo"><span>Motivo</span><span>${b.cancellation_reason || 'Sin motivo registrado'}</span></div>
+      `;
+    }
+
+    document.getElementById('bookingModalBody').innerHTML = html;
+    document.getElementById('bookingModal').classList.add('show');
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function cerrarModal() {
+  document.getElementById('bookingModal').classList.remove('show');
 }
 
 async function cambiarEstado(select) {
@@ -202,11 +294,19 @@ async function cambiarEstado(select) {
   }
 }
 
+function setPeriod(period) {
+  currentPeriod = period;
+  document.querySelectorAll('.period-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+  document.getElementById('customRange').classList.toggle('hidden', period !== 'custom');
+  if (period !== 'custom') loadDashboard();
+}
+
 async function handleLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
-
   errEl.classList.add('hidden');
 
   try {
@@ -231,5 +331,30 @@ document.getElementById('loginPassword').addEventListener('keydown', (e) => {
 document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
 document.getElementById('btnLogout2').addEventListener('click', handleLogout);
 document.getElementById('btnRefresh').addEventListener('click', loadDashboard);
+
+let folioDebounce;
+document.getElementById('searchFolio').addEventListener('input', () => {
+  clearTimeout(folioDebounce);
+  folioDebounce = setTimeout(loadBookingsTable, 300);
+});
+document.getElementById('filterStatus').addEventListener('change', loadBookingsTable);
+document.getElementById('btnCloseModal').addEventListener('click', cerrarModal);
+document.getElementById('bookingModal').addEventListener('click', (e) => {
+  if (e.target.id === 'bookingModal') cerrarModal();
+});
+
+document.querySelectorAll('.period-btn').forEach((btn) => {
+  btn.addEventListener('click', () => setPeriod(btn.dataset.period));
+});
+
+document.getElementById('btnApplyRange').addEventListener('click', () => {
+  customFrom = document.getElementById('dateFrom').value;
+  customTo = document.getElementById('dateTo').value;
+  if (!customFrom) {
+    alert('Selecciona al menos la fecha de inicio');
+    return;
+  }
+  loadDashboard();
+});
 
 document.addEventListener('DOMContentLoaded', loadDashboard);

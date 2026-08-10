@@ -1,12 +1,16 @@
 const { google } = require('googleapis');
 
+function getGmailConfigStatus() {
+  const missing = [];
+  if (!process.env.GMAIL_CLIENT_ID) missing.push('GMAIL_CLIENT_ID');
+  if (!process.env.GMAIL_CLIENT_SECRET) missing.push('GMAIL_CLIENT_SECRET');
+  if (!process.env.GMAIL_REFRESH_TOKEN) missing.push('GMAIL_REFRESH_TOKEN');
+  if (!process.env.GMAIL_USER) missing.push('GMAIL_USER');
+  return { configured: missing.length === 0, missing };
+}
+
 function isGmailConfigured() {
-  return !!(
-    process.env.GMAIL_CLIENT_ID &&
-    process.env.GMAIL_CLIENT_SECRET &&
-    process.env.GMAIL_REFRESH_TOKEN &&
-    process.env.GMAIL_USER
-  );
+  return getGmailConfigStatus().configured;
 }
 
 function getOAuthClient() {
@@ -27,10 +31,16 @@ function formatMoney(n) {
   return '$' + Number(n).toLocaleString('es-MX') + ' MXN';
 }
 
+function getAppUrl() {
+  return (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+}
+
 function buildReceiptHtml(data) {
   const extras = data.extrasNombres?.length
     ? data.extrasNombres.join(', ')
     : 'Ninguno';
+
+  const cancelUrl = `${getAppUrl()}/cancelar?folio=${encodeURIComponent(data.folio)}`;
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -62,10 +72,29 @@ function buildReceiptHtml(data) {
               ${row('Teléfono', data.telefono)}
               ${row('Total', formatMoney(data.total), true)}
             </table>
-            <p style="margin:24px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
-              Horario de atención: Lunes a Sábado, 8:00 AM – 6:00 PM.<br>
-              Si necesitas cambios, contáctanos respondiendo a este correo.
+            <p style="margin:24px 0 16px;color:#6b7280;font-size:12px;line-height:1.6;">
+              Horario de atención: Lunes a Sábado, 8:00 AM – 6:00 PM.
             </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+              <tr>
+                <td align="center" style="padding:14px 0;">
+                  <a href="${cancelUrl}" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:700;">
+                    Cancelar mi cita
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="font-size:12px;color:#6b7280;">
+                  Usa tu folio <strong>${data.folio}</strong> en la página de cancelación.
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;border-radius:10px;padding:8px 0;">
+              <tr><td colspan="2" style="padding:12px 20px 8px;font-size:11px;font-weight:700;color:#0d47a1;text-transform:uppercase;letter-spacing:1px;">Contacto</td></tr>
+              ${row('Correo', 'carsolutionutc@gmail.com')}
+              ${row('Teléfono', '55 3351 9512')}
+              ${row('Ubicación', 'Calle 1 Núm 432, Deportivo Pensil, CDMX')}
+            </table>
           </td>
         </tr>
         <tr>
@@ -124,9 +153,10 @@ async function sendRawEmail(gmail, { to, subject, html }) {
 }
 
 async function sendBookingReceipt(data) {
-  if (!isGmailConfigured()) {
-    console.warn('Gmail API no configurado — correo omitido');
-    return { sent: false, reason: 'not_configured' };
+  const status = getGmailConfigStatus();
+  if (!status.configured) {
+    console.warn(`Gmail API no configurado — faltan: ${status.missing.join(', ')}`);
+    return { sent: false, reason: 'not_configured', missing: status.missing };
   }
 
   try {
@@ -152,4 +182,9 @@ async function sendBookingReceipt(data) {
   }
 }
 
-module.exports = { sendBookingReceipt, isGmailConfigured, getOAuthClient };
+module.exports = {
+  sendBookingReceipt,
+  isGmailConfigured,
+  getGmailConfigStatus,
+  getOAuthClient,
+};

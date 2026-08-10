@@ -7,6 +7,7 @@ const path = require('path');
 const servicesRouter = require('./routes/services');
 const bookingsRouter = require('./routes/bookings');
 const adminRouter = require('./routes/admin');
+const { getGmailConfigStatus } = require('./services/gmail');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,9 +32,12 @@ app.get('/api/health', (_req, res) => {
     }
   }
 
+  const gmail = getGmailConfigStatus();
+
   res.json({
     status: 'ok',
     database,
+    gmail: gmail.configured ? 'configured' : { status: 'missing', fields: gmail.missing },
     timestamp: new Date().toISOString(),
   });
 });
@@ -47,6 +51,10 @@ app.use(express.static(publicDir));
 
 app.get('/admin', (_req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
+});
+
+app.get('/cancelar', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'cancelar.html'));
 });
 
 app.use('/api', (_req, res) => {

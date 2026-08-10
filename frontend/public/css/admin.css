@@ -218,4 +218,142 @@
   font-size: 0.85rem;
 }
 
+.admin-header-left { flex: 1; }
+
+.admin-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.period-selector {
+  display: inline-flex;
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.period-btn {
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--gris2);
+  padding: 0.4rem 0.75rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gris);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.period-btn:last-child { border-right: none; }
+
+.period-btn:hover { background: var(--fondo); color: var(--azul); }
+
+.period-btn.active {
+  background: var(--azul);
+  color: #fff;
+}
+
+.custom-range {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.custom-range label {
+  font-size: 0.82rem;
+  color: var(--gris);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.custom-range input[type="date"] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--gris2);
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+}
+
+.bookings-filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.55rem 0.85rem;
+  border: 1.5px solid var(--gris2);
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.85rem;
+  background: var(--fondo);
+}
+
+.filter-input { flex: 1; min-width: 180px; }
+
+.actions-cell {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-view {
+  background: var(--azulclaro);
+  color: var(--azul);
+  border: 1px solid rgba(13,71,161,0.2);
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-view:hover { background: var(--azul); color: #fff; }
+
+.modal-wide {
+  max-width: 520px;
+  text-align: left;
+}
+
+.modal-wide h3 {
+  font-family: 'Oswald', sans-serif;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.modal-motivo span:last-child {
+  text-align: right;
+  max-width: 65%;
+  word-break: break-word;
+}
+
+#bookingModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,47,110,0.75);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+}
+
+#bookingModal.show { display: flex; }
+
+#bookingModal .modal-box { text-align: left; }
+#bookingModal .btn-cerrar { margin-top: 1rem; }
+
 .hidden { display: none !important; }

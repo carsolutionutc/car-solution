@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   notas           TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  cancelled_at    TIMESTAMPTZ
+  cancelled_at    TIMESTAMPTZ,
+  cancellation_reason TEXT
 );
 
 CREATE TABLE IF NOT EXISTS booking_extras (

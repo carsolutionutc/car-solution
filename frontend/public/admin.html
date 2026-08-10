@@ -22,7 +22,6 @@
   </ul>
 </nav>
 
-<!-- Login -->
 <div id="loginView" class="admin-login-wrap">
   <div class="admin-login-box">
     <h1>Iniciar sesión</h1>
@@ -40,12 +39,26 @@
   </div>
 </div>
 
-<!-- Dashboard -->
 <div id="dashboardView" class="admin-dashboard hidden">
   <div class="admin-header">
-    <div>
+    <div class="admin-header-left">
       <div class="seccion-label">Operaciones</div>
-      <h1>Dashboard</h1>
+      <div class="admin-title-row">
+        <h1>Dashboard</h1>
+        <div class="period-selector" id="periodSelector">
+          <button class="period-btn" data-period="1d">1D</button>
+          <button class="period-btn" data-period="1w">1S</button>
+          <button class="period-btn" data-period="1m">1M</button>
+          <button class="period-btn" data-period="1y">1A</button>
+          <button class="period-btn active" data-period="all">Todos</button>
+          <button class="period-btn" data-period="custom">Perso</button>
+        </div>
+      </div>
+      <div id="customRange" class="custom-range hidden">
+        <label>Desde <input type="date" id="dateFrom"></label>
+        <label>Hasta <input type="date" id="dateTo"></label>
+        <button class="btn-admin" id="btnApplyRange">Aplicar</button>
+      </div>
     </div>
     <div class="admin-actions">
       <button class="btn-admin outline" id="btnRefresh">Actualizar</button>
@@ -75,7 +88,17 @@
   </div>
 
   <div class="bookings-section">
-    <h3>Citas recientes</h3>
+    <h3>Citas</h3>
+    <div class="bookings-filters">
+      <input type="text" id="searchFolio" placeholder="Buscar por folio..." class="filter-input">
+      <select id="filterStatus" class="filter-select">
+        <option value="todos">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="confirmada">Confirmada</option>
+        <option value="completada">Completada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+    </div>
     <table class="admin-table">
       <thead>
         <tr>
@@ -85,11 +108,19 @@
           <th>Fecha</th>
           <th>Total</th>
           <th>Estado</th>
-          <th>Acción</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="bookingsBody"></tbody>
     </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal-box modal-wide">
+    <h3>Ficha de cita</h3>
+    <div id="bookingModalBody" class="modal-detalles"></div>
+    <button class="btn-cerrar" id="btnCloseModal">Cerrar</button>
   </div>
 </div>
 

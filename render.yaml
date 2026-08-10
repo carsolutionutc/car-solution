@@ -29,3 +29,5 @@ services:
         sync: false
       - key: GMAIL_NOTIFY_TO
         sync: false
+      - key: APP_URL
+        sync: false

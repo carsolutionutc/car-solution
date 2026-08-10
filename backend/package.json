@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "gmail:auth": "node scripts/get-gmail-token.js"
+    "gmail:auth": "node scripts/get-gmail-token.js",
+    "gmail:test": "node scripts/test-gmail.js"
   },
   "engines": {
     "node": ">=18"

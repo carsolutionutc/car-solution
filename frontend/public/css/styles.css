@@ -823,6 +823,61 @@ tbody td:last-child { font-weight: 700; color: var(--azul); }
 
 .btn-cerrar:hover { background: var(--azul2); }
 
+/* CONTACTO */
+.contacto-section {
+  background: #fff;
+  padding: 4rem 2rem;
+}
+
+.contacto-container {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.contacto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.contacto-item {
+  background: var(--fondo);
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.25rem 1.5rem;
+}
+
+.contacto-item.contacto-full {
+  grid-column: 1 / -1;
+}
+
+.contacto-lbl {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--azul3);
+  margin-bottom: 0.35rem;
+}
+
+.contacto-item a {
+  color: var(--texto);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.contacto-item a:hover { color: var(--azul); text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .contacto-grid { grid-template-columns: 1fr; }
+}
+
 /* FOOTER */
 footer {
   background: var(--azul);
@@ -830,9 +885,39 @@ footer {
   text-align: center;
   padding: 1.75rem 2rem;
   font-size: 0.82rem;
+  line-height: 1.8;
 }
 
 footer strong { color: #fff; }
+
+.footer-contacto {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  line-height: 1.9;
+}
+
+.footer-contacto-titulo {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 0.25rem;
+}
+
+.footer-contacto a {
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.footer-contacto a:hover { color: #fff; text-decoration: underline; }
+
+.footer-sep {
+  color: rgba(255,255,255,0.35);
+  margin: 0 0.25rem;
+}
 
 /* ANIMACIONES */
 @keyframes fadeUp {

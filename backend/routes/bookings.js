@@ -46,6 +46,98 @@ function validateBooking(body) {
   return null;
 }
 
+router.get('/folio/:folio', async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const folio = req.params.folio.trim().toUpperCase();
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        folio, nombre, email, telefono, fecha, hora, total, status,
+        vehiculo_tipo, tapiceria, created_at,
+        services ( nombre )
+      `)
+      .eq('folio', folio)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({ error: 'Folio no encontrado' });
+    }
+
+    if (data.status === 'cancelada') {
+      return res.status(400).json({ error: 'Esta cita ya fue cancelada', booking: data });
+    }
+    if (data.status === 'completada') {
+      return res.status(400).json({ error: 'Esta cita ya fue completada y no puede cancelarse', booking: data });
+    }
+
+    res.json({
+      folio: data.folio,
+      nombre: data.nombre,
+      email: data.email,
+      telefono: data.telefono,
+      servicio: data.services?.nombre,
+      fecha: data.fecha,
+      hora: String(data.hora).slice(0, 5),
+      total: Number(data.total),
+      status: data.status,
+      vehiculoTipo: data.vehiculo_tipo,
+      tapiceria: data.tapiceria,
+    });
+  } catch (err) {
+    console.error('GET folio:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'Error al buscar la cita' });
+  }
+});
+
+router.post('/cancelar', async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const folio = (req.body.folio || '').trim().toUpperCase();
+    const motivo = (req.body.motivo || '').trim();
+
+    if (!folio) return res.status(400).json({ error: 'Ingresa tu folio de cita' });
+    if (!motivo || motivo.length < 5) {
+      return res.status(400).json({ error: 'El motivo de cancelación es obligatorio (mínimo 5 caracteres)' });
+    }
+
+    const { data: existing, error: findErr } = await supabase
+      .from('bookings')
+      .select('id, folio, status')
+      .eq('folio', folio)
+      .single();
+
+    if (findErr || !existing) {
+      return res.status(404).json({ error: 'Folio no encontrado' });
+    }
+    if (existing.status === 'cancelada') {
+      return res.status(400).json({ error: 'Esta cita ya fue cancelada' });
+    }
+    if (existing.status === 'completada') {
+      return res.status(400).json({ error: 'Esta cita ya fue completada y no puede cancelarse' });
+    }
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({
+        status: 'cancelada',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: motivo,
+      })
+      .eq('id', existing.id)
+      .select('folio, status, cancelled_at')
+      .single();
+
+    if (error) throw error;
+
+    res.json({ message: 'Cita cancelada correctamente', folio: data.folio, status: data.status });
+  } catch (err) {
+    console.error('POST cancelar:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'No se pudo cancelar la cita' });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const supabase = getSupabase();
