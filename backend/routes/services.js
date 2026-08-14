@@ -34,6 +34,7 @@ function mapService(s) {
     precio: Number(s.precio_base),
     items: s.items || [],
     pop: s.popular,
+    durationMinutes: Number(s.duration_minutes) || 30,
   };
 }
 

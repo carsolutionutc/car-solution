@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/css/styles.css">
 <link rel="stylesheet" href="/css/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body class="admin-body">
 
@@ -18,6 +19,7 @@
   </div>
   <ul class="nav-links">
     <li><a href="/">← Vista Usuario</a></li>
+    <li><a href="/admin/gestion" id="navGestion" class="hidden">Gestión</a></li>
     <li><a href="#" id="btnLogout" class="nav-btn hidden">Salir</a></li>
   </ul>
 </nav>
@@ -61,9 +63,26 @@
       </div>
     </div>
     <div class="admin-actions">
+      <a class="btn-admin outline" href="/admin/gestion" id="btnGestion">Gestión</a>
       <button class="btn-admin outline" id="btnRefresh">Actualizar</button>
       <button class="btn-admin" id="btnLogout2">Cerrar sesión</button>
     </div>
+  </div>
+
+  <div class="qr-scan-panel">
+    <div class="qr-scan-header">
+      <div>
+        <h3>Escáner QR</h3>
+        <p>1.er escaneo → <strong>confirmada</strong> · 2.º escaneo → <strong>completada</strong></p>
+      </div>
+      <div class="qr-manual">
+        <input type="text" id="manualFolio" placeholder="O escribe el folio..." class="filter-input">
+        <button class="btn-admin" id="btnManualScan">Procesar</button>
+        <button class="btn-admin outline" id="btnToggleCam">Cámara</button>
+      </div>
+    </div>
+    <div id="qrReader" class="qr-reader hidden"></div>
+    <div id="scanResult" class="scan-result hidden"></div>
   </div>
 
   <div class="kpi-grid" id="kpiGrid"></div>
@@ -78,17 +97,17 @@
       <canvas id="chartStatus"></canvas>
     </div>
     <div class="chart-card">
-      <h3>Ingresos mensuales (completadas)</h3>
+      <h3>Ingresos (completadas)</h3>
       <canvas id="chartIngresos"></canvas>
     </div>
     <div class="chart-card">
-      <h3>Cancelaciones por mes</h3>
+      <h3>Cancelaciones</h3>
       <canvas id="chartCancelaciones"></canvas>
     </div>
   </div>
 
   <div class="bookings-section">
-    <h3>Citas</h3>
+    <h3>Citas <small id="bookingsPeriodHint" style="font-weight:400;color:var(--gris);"></small></h3>
     <div class="bookings-filters">
       <input type="text" id="searchFolio" placeholder="Buscar por folio..." class="filter-input">
       <select id="filterStatus" class="filter-select">
@@ -106,6 +125,7 @@
           <th>Cliente</th>
           <th>Servicio</th>
           <th>Fecha</th>
+          <th>Bahía</th>
           <th>Total</th>
           <th>Estado</th>
           <th>Acciones</th>

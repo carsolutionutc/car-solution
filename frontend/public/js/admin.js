@@ -3,6 +3,9 @@ let charts = {};
 let currentPeriod = 'all';
 let customFrom = '';
 let customTo = '';
+let html5QrCode = null;
+let camActive = false;
+let lastScanAt = 0;
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -20,12 +23,14 @@ function showLogin() {
   document.getElementById('loginView').classList.remove('hidden');
   document.getElementById('dashboardView').classList.add('hidden');
   document.getElementById('btnLogout').classList.add('hidden');
+  document.getElementById('navGestion')?.classList.add('hidden');
 }
 
 function showDashboard() {
   document.getElementById('loginView').classList.add('hidden');
   document.getElementById('dashboardView').classList.remove('hidden');
   document.getElementById('btnLogout').classList.remove('hidden');
+  document.getElementById('navGestion')?.classList.remove('hidden');
 }
 
 function formatMoney(n) {
@@ -40,23 +45,38 @@ function formatDateTime(iso) {
   });
 }
 
-function analyticsQuery() {
+function periodParams() {
   const params = new URLSearchParams({ period: currentPeriod });
   if (currentPeriod === 'custom') {
     if (customFrom) params.set('from', customFrom);
     if (customTo) params.set('to', customTo);
   }
-  return `/api/admin/analytics?${params}`;
+  return params;
+}
+
+function analyticsQuery() {
+  return `/api/admin/analytics?${periodParams()}`;
 }
 
 function bookingsQuery() {
   const folio = document.getElementById('searchFolio').value.trim();
   const status = document.getElementById('filterStatus').value;
-  const params = new URLSearchParams();
+  const params = periodParams();
   if (folio) params.set('folio', folio);
   if (status && status !== 'todos') params.set('status', status);
-  const qs = params.toString();
-  return `/api/admin/bookings${qs ? `?${qs}` : ''}`;
+  return `/api/admin/bookings?${params}`;
+}
+
+function periodHint() {
+  const labels = {
+    '1d': '(filtro: último día)',
+    '1w': '(filtro: última semana)',
+    '1m': '(filtro: último mes)',
+    '1y': '(filtro: último año)',
+    all: '',
+    custom: '(filtro: rango personalizado)',
+  };
+  return labels[currentPeriod] || '';
 }
 
 function renderKPIs(kpis, period) {
@@ -182,8 +202,10 @@ function renderCharts(data) {
 
 function renderBookings(bookings) {
   const tbody = document.getElementById('bookingsBody');
+  document.getElementById('bookingsPeriodHint').textContent = periodHint();
+
   if (!bookings.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gris);">No hay citas con esos filtros</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gris);">No hay citas con esos filtros</td></tr>';
     return;
   }
 
@@ -193,6 +215,7 @@ function renderBookings(bookings) {
       <td>${b.nombre}<br><small style="color:var(--gris)">${b.email}</small></td>
       <td>${b.services?.nombre || '—'}</td>
       <td>${b.fecha} ${String(b.hora).slice(0, 5)}</td>
+      <td>${b.bay_number ? `B${b.bay_number}` : '—'}</td>
       <td>${formatMoney(b.total)}</td>
       <td><span class="status-badge status-${b.status}">${b.status}</span></td>
       <td class="actions-cell">
@@ -206,6 +229,72 @@ function renderBookings(bookings) {
       </td>
     </tr>
   `).join('');
+}
+
+function showScanResult(ok, title, detail) {
+  const el = document.getElementById('scanResult');
+  el.classList.remove('hidden', 'ok', 'err');
+  el.classList.add(ok ? 'ok' : 'err');
+  el.innerHTML = `<strong>${title}</strong><br><span>${detail}</span>`;
+}
+
+async function processScan(folioRaw) {
+  const token = getToken();
+  if (!token) return;
+
+  const folio = String(folioRaw || '').trim().toUpperCase();
+  if (!folio) {
+    showScanResult(false, 'Folio vacío', 'Escanea o escribe un folio válido');
+    return;
+  }
+
+  // Debounce duplicate camera reads
+  const now = Date.now();
+  if (now - lastScanAt < 2500) return;
+  lastScanAt = now;
+
+  try {
+    const result = await apiPostAuth('/api/admin/scan', { folio }, token);
+    showScanResult(
+      true,
+      result.message,
+      `Folio ${result.folio} · ${result.previousStatus} → ${result.status}${result.bayNumber ? ` · Bahía ${result.bayNumber}` : ''}`
+    );
+    document.getElementById('manualFolio').value = '';
+    await loadDashboard();
+  } catch (err) {
+    showScanResult(false, 'No se pudo procesar', err.message || 'Error');
+  }
+}
+
+async function toggleCamera() {
+  const reader = document.getElementById('qrReader');
+  if (camActive) {
+    try {
+      if (html5QrCode) await html5QrCode.stop();
+    } catch { /* ignore */ }
+    camActive = false;
+    reader.classList.add('hidden');
+    document.getElementById('btnToggleCam').textContent = 'Cámara';
+    return;
+  }
+
+  reader.classList.remove('hidden');
+  if (!html5QrCode) html5QrCode = new Html5Qrcode('qrReader');
+
+  try {
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 8, qrbox: { width: 220, height: 220 } },
+      (decoded) => processScan(decoded),
+      () => {}
+    );
+    camActive = true;
+    document.getElementById('btnToggleCam').textContent = 'Detener cámara';
+  } catch (err) {
+    reader.classList.add('hidden');
+    showScanResult(false, 'Cámara no disponible', err.message || 'Permite el acceso a la cámara o usa el folio manual');
+  }
 }
 
 async function loadBookingsTable() {
@@ -257,6 +346,10 @@ async function verCita(id) {
       <div class="modal-linea"><span>Tapicería</span><span>${b.tapiceria}</span></div>
       <div class="modal-linea"><span>Extras</span><span>${extras}</span></div>
       <div class="modal-linea"><span>Fecha cita</span><span>${b.fecha} ${String(b.hora).slice(0, 5)}</span></div>
+      <div class="modal-linea"><span>Bahía</span><span>${b.bay_number || '—'}</span></div>
+      <div class="modal-linea"><span>Duración</span><span>${b.duration_minutes ? b.duration_minutes + ' min' : '—'}</span></div>
+      <div class="modal-linea"><span>Check-in</span><span>${formatDateTime(b.checked_in_at)}</span></div>
+      <div class="modal-linea"><span>Completada</span><span>${formatDateTime(b.completed_at)}</span></div>
       <div class="modal-linea"><span>Registrada</span><span>${formatDateTime(b.created_at)}</span></div>
       <div class="modal-linea"><span>Total</span><span>${formatMoney(b.total)} MXN</span></div>
       <div class="modal-linea"><span>Estado</span><span>${b.status}</span></div>
@@ -331,6 +424,13 @@ document.getElementById('loginPassword').addEventListener('keydown', (e) => {
 document.getElementById('btnLogout').addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
 document.getElementById('btnLogout2').addEventListener('click', handleLogout);
 document.getElementById('btnRefresh').addEventListener('click', loadDashboard);
+document.getElementById('btnToggleCam').addEventListener('click', toggleCamera);
+document.getElementById('btnManualScan').addEventListener('click', () => {
+  processScan(document.getElementById('manualFolio').value);
+});
+document.getElementById('manualFolio').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') processScan(e.target.value);
+});
 
 let folioDebounce;
 document.getElementById('searchFolio').addEventListener('input', () => {

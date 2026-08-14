@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const QRCode = require('qrcode');
 
 function getGmailConfigStatus() {
   const missing = [];
@@ -41,6 +42,8 @@ function buildReceiptHtml(data) {
     : 'Ninguno';
 
   const cancelUrl = `${getAppUrl()}/cancelar?folio=${encodeURIComponent(data.folio)}`;
+  const bayLine = data.bayNumber ? row('Espacio', `Bahía ${data.bayNumber}`) : '';
+  const durLine = data.durationMinutes ? row('Duración est.', `${data.durationMinutes} min`) : '';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -60,7 +63,17 @@ function buildReceiptHtml(data) {
             <p style="margin:0 0 8px;color:#6b7280;font-size:14px;">Hola <strong style="color:#1a1a2e;">${data.nombre}</strong>,</p>
             <p style="margin:0 0 24px;color:#374151;font-size:14px;line-height:1.6;">
               Tu cita quedó registrada. Guarda este recibo — tu folio es <strong style="color:#0d47a1;">${data.folio}</strong>.
+              Presenta el código QR al llegar (tolerancia de llegada: <strong>${data.toleranceMinutes || 15} minutos</strong>).
             </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+              <tr>
+                <td align="center" style="padding:16px;background:#f8fafc;border-radius:12px;border:1px solid #e5e7eb;">
+                  <img src="cid:booking-qr" alt="QR ${data.folio}" width="200" height="200" style="display:block;margin:0 auto 12px;border:0;" />
+                  <p style="margin:0;font-size:13px;color:#0d47a1;font-weight:700;letter-spacing:1px;">${data.folio}</p>
+                  <p style="margin:6px 0 0;font-size:11px;color:#6b7280;">Escanea en recepción para check-in y salida</p>
+                </td>
+              </tr>
+            </table>
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;border-radius:10px;padding:4px 0;">
               ${row('Folio', data.folio)}
               ${row('Servicio', data.servicio)}
@@ -69,11 +82,14 @@ function buildReceiptHtml(data) {
               ${row('Extras', extras)}
               ${row('Fecha', data.fecha)}
               ${row('Hora', data.hora)}
+              ${bayLine}
+              ${durLine}
               ${row('Teléfono', data.telefono)}
               ${row('Total', formatMoney(data.total), true)}
             </table>
             <p style="margin:24px 0 16px;color:#6b7280;font-size:12px;line-height:1.6;">
               Horario de atención: Lunes a Sábado, 8:00 AM – 6:00 PM.
+              Si no te presentas dentro de los ${data.toleranceMinutes || 15} min de tolerancia, la cita se cancela automáticamente.
             </p>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
               <tr>
@@ -116,20 +132,41 @@ function row(label, value, highlight = false) {
   </tr>`;
 }
 
-function encodeRawMessage({ to, subject, html, from }) {
+function encodeRawMessage({ to, subject, html, from, qrPngBuffer }) {
   const fromHeader = `Car Solution <${from}>`;
   const encodedSubject = `=?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`;
+  const boundary = `mixed_${Date.now()}`;
+  const relatedBoundary = `related_${Date.now()}`;
+
+  const htmlB64 = Buffer.from(html).toString('base64').replace(/(.{76})/g, '$1\r\n');
+  const qrB64 = qrPngBuffer.toString('base64').replace(/(.{76})/g, '$1\r\n');
 
   const lines = [
     `From: ${fromHeader}`,
     `To: ${to}`,
     `Subject: ${encodedSubject}`,
     'MIME-Version: 1.0',
+    `Content-Type: multipart/related; boundary="${relatedBoundary}"`,
+    '',
+    `--${relatedBoundary}`,
     'Content-Type: text/html; charset=UTF-8',
     'Content-Transfer-Encoding: base64',
     '',
-    Buffer.from(html).toString('base64'),
+    htmlB64,
+    '',
+    `--${relatedBoundary}`,
+    'Content-Type: image/png; name="qr.png"',
+    'Content-Transfer-Encoding: base64',
+    'Content-ID: <booking-qr>',
+    'Content-Disposition: inline; filename="qr.png"',
+    '',
+    qrB64,
+    '',
+    `--${relatedBoundary}--`,
   ];
+
+  // silence unused
+  void boundary;
 
   return Buffer.from(lines.join('\r\n'))
     .toString('base64')
@@ -138,12 +175,13 @@ function encodeRawMessage({ to, subject, html, from }) {
     .replace(/=+$/, '');
 }
 
-async function sendRawEmail(gmail, { to, subject, html }) {
+async function sendRawEmail(gmail, { to, subject, html, qrPngBuffer }) {
   const raw = encodeRawMessage({
     to,
     subject,
     html,
     from: process.env.GMAIL_USER,
+    qrPngBuffer,
   });
 
   await gmail.users.messages.send({
@@ -163,8 +201,14 @@ async function sendBookingReceipt(data) {
     const gmail = await getGmailClient();
     const subject = `Car Solution — Confirmación de cita ${data.folio}`;
     const html = buildReceiptHtml(data);
+    const qrPngBuffer = await QRCode.toBuffer(String(data.folio), {
+      type: 'png',
+      width: 280,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+    });
 
-    await sendRawEmail(gmail, { to: data.email, subject, html });
+    await sendRawEmail(gmail, { to: data.email, subject, html, qrPngBuffer });
 
     if (process.env.GMAIL_NOTIFY_TO) {
       const notifyHtml = buildReceiptHtml({ ...data, nombre: `Nueva cita: ${data.nombre}` });
@@ -172,6 +216,7 @@ async function sendBookingReceipt(data) {
         to: process.env.GMAIL_NOTIFY_TO,
         subject: `[Admin] Nueva cita ${data.folio} — ${data.nombre}`,
         html: notifyHtml,
+        qrPngBuffer,
       });
     }
 

@@ -18,6 +18,20 @@ async function apiPost(path, body) {
   return data;
 }
 
+async function apiPostAuth(path, body, token) {
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error de servidor');
+  return data;
+}
+
 async function apiPatch(path, body, token) {
   const res = await fetch(API + path, {
     method: 'PATCH',

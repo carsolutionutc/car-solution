@@ -7,7 +7,9 @@ const path = require('path');
 const servicesRouter = require('./routes/services');
 const bookingsRouter = require('./routes/bookings');
 const adminRouter = require('./routes/admin');
+const inventoryRouter = require('./routes/inventory');
 const { getGmailConfigStatus } = require('./services/gmail');
+const { startAutoCancelJob } = require('./jobs/autoCancel');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,12 +47,17 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/services', servicesRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/admin/inventory', inventoryRouter);
 
 const publicDir = path.join(__dirname, '..', 'frontend', 'public');
 app.use(express.static(publicDir));
 
 app.get('/admin', (_req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
+});
+
+app.get('/admin/gestion', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'gestion.html'));
 });
 
 app.get('/cancelar', (_req, res) => {
@@ -69,5 +76,7 @@ app.listen(PORT, () => {
   console.log(`\n🚗 Car Solution API`);
   console.log(`   Local:  http://localhost:${PORT}`);
   console.log(`   Admin:  http://localhost:${PORT}/admin`);
+  console.log(`   Gestión: http://localhost:${PORT}/admin/gestion`);
   console.log(`   Health: http://localhost:${PORT}/api/health\n`);
+  startAutoCancelJob();
 });

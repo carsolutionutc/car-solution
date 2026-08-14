@@ -1,14 +1,11 @@
-function filterByPeriod(items, period, from, to) {
-  if (!period || period === 'all') return items;
+function getPeriodRange(period, from, to) {
+  if (!period || period === 'all') return null;
 
   if (period === 'custom') {
-    if (!from) return items;
+    if (!from) return null;
     const start = new Date(`${from}T00:00:00`);
     const end = to ? new Date(`${to}T23:59:59`) : new Date();
-    return items.filter((item) => {
-      const d = new Date(item.created_at);
-      return d >= start && d <= end;
-    });
+    return { start, end };
   }
 
   const now = new Date();
@@ -28,10 +25,38 @@ function filterByPeriod(items, period, from, to) {
       start.setFullYear(start.getFullYear() - 1);
       break;
     default:
-      return items;
+      return null;
   }
 
-  return items.filter((item) => new Date(item.created_at) >= start);
+  return { start, end: now };
+}
+
+function filterByPeriod(items, period, from, to, dateField = 'created_at') {
+  const range = getPeriodRange(period, from, to);
+  if (!range) return items;
+
+  const useDateOnly = dateField === 'fecha';
+
+  return items.filter((item) => {
+    const raw = item[dateField] || item.created_at;
+    if (!raw) return false;
+
+    if (useDateOnly) {
+      const day = String(raw).slice(0, 10);
+      const startDay = range.start.toISOString().slice(0, 10);
+      // Local calendar day for end
+      const endLocal = new Date(range.end);
+      const endDay = `${endLocal.getFullYear()}-${String(endLocal.getMonth() + 1).padStart(2, '0')}-${String(endLocal.getDate()).padStart(2, '0')}`;
+      // Also compute start in local time for consistency
+      const startLocal = new Date(range.start);
+      const startLocalDay = `${startLocal.getFullYear()}-${String(startLocal.getMonth() + 1).padStart(2, '0')}-${String(startLocal.getDate()).padStart(2, '0')}`;
+      void startDay;
+      return day >= startLocalDay && day <= endDay;
+    }
+
+    const d = new Date(raw);
+    return d >= range.start && d <= range.end;
+  });
 }
 
 function buildAnalytics(bookings) {
@@ -112,4 +137,4 @@ function buildAnalytics(bookings) {
   };
 }
 
-module.exports = { filterByPeriod, buildAnalytics };
+module.exports = { filterByPeriod, buildAnalytics, getPeriodRange };

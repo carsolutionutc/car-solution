@@ -18,13 +18,19 @@ async function initApp() {
   }
 
   const hoy = new Date().toISOString().split('T')[0];
-  document.getElementById('fecha').setAttribute('min', hoy);
+  const fechaEl = document.getElementById('fecha');
+  fechaEl.setAttribute('min', hoy);
+  fechaEl.addEventListener('change', loadSlots);
+  document.getElementById('servicio').addEventListener('change', () => {
+    recalc();
+    loadSlots();
+  });
 }
 
 function populateServiceSelect() {
   const sel = document.getElementById('servicio');
   sel.innerHTML = SERVICIOS.map((s) =>
-    `<option value="${s.precio}" data-id="${s.id}" data-n="${s.nom}">${s.nom} — $${s.precio.toLocaleString('es-MX')}</option>`
+    `<option value="${s.precio}" data-id="${s.id}" data-n="${s.nom}" data-dur="${s.durationMinutes || 30}">${s.nom} — $${s.precio.toLocaleString('es-MX')} (${s.durationMinutes || 30} min)</option>`
   ).join('');
 }
 
@@ -41,6 +47,7 @@ function renderServicios(cat) {
       <p>${s.desc}</p>
       <ul class="sv-items">${(s.items || []).map((i) => `<li>${i}</li>`).join('')}</ul>
       <div class="sv-precio">$${s.precio.toLocaleString('es-MX')}<small> MXN</small></div>
+      <div style="margin-top:0.4rem;font-size:0.75rem;color:var(--gris);">⏱ ~${s.durationMinutes || 30} min</div>
     </div>
   `).join('');
 }
@@ -66,6 +73,7 @@ function elegirServicio(serviceId, precio, nombre, card) {
     }
   }
   recalc();
+  loadSlots();
   document.getElementById('cotizar').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -111,6 +119,47 @@ function recalc() {
     document.getElementById('r-ext').textContent = '+$' + extTotal.toLocaleString('es-MX');
   } else {
     extL.style.display = 'none';
+  }
+}
+
+async function loadSlots() {
+  const fecha = document.getElementById('fecha').value;
+  const sel = document.getElementById('servicio');
+  const serviceId = sel.options[sel.selectedIndex]?.dataset.id;
+  const horaSel = document.getElementById('hora');
+  const hint = document.getElementById('slotsHint');
+
+  if (!fecha || !serviceId) {
+    horaSel.innerHTML = '<option value="">Selecciona fecha y servicio</option>';
+    hint.textContent = '';
+    return;
+  }
+
+  const day = new Date(fecha + 'T12:00:00').getDay();
+  if (day === 0) {
+    horaSel.innerHTML = '<option value="">No hay horarios (domingo)</option>';
+    hint.textContent = 'No trabajamos los domingos.';
+    return;
+  }
+
+  horaSel.innerHTML = '<option value="">Cargando horarios...</option>';
+  hint.textContent = '';
+
+  try {
+    const data = await apiGet(`/api/bookings/slots?fecha=${encodeURIComponent(fecha)}&serviceId=${encodeURIComponent(serviceId)}`);
+    if (!data.slots?.length) {
+      horaSel.innerHTML = '<option value="">Sin horarios disponibles</option>';
+      hint.textContent = 'No hay bahías libres para la duración de este servicio ese día.';
+      return;
+    }
+
+    horaSel.innerHTML = '<option value="">Elige una hora</option>' +
+      data.slots.map((h) => `<option value="${h}">${h}</option>`).join('');
+
+    hint.textContent = `Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min entre citas · tolerancia llegada ${data.meta?.toleranceMinutes || 15} min`;
+  } catch (err) {
+    horaSel.innerHTML = '<option value="">Error al cargar horarios</option>';
+    hint.textContent = err.message || 'Error';
   }
 }
 
@@ -171,7 +220,7 @@ async function enviarCita() {
     });
 
     document.getElementById('modalOkText').textContent = booking.emailSent
-      ? 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con tu folio.'
+      ? 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con folio y código QR.'
       : 'Tu cita quedó registrada. Guarda tu folio de confirmación.';
 
     document.getElementById('modalDetalles').innerHTML = `
@@ -181,9 +230,11 @@ async function enviarCita() {
       <div class="modal-linea"><span>Servicio</span><span>${booking.servicio}</span></div>
       <div class="modal-linea"><span>Fecha</span><span>${fecha}</span></div>
       <div class="modal-linea"><span>Hora</span><span>${hora}</span></div>
+      <div class="modal-linea"><span>Bahía</span><span>${booking.bayNumber || '—'}</span></div>
       <div class="modal-linea"><span>Total</span><span>$${total.toLocaleString('es-MX')} MXN</span></div>
     `;
     document.getElementById('modalOk').classList.add('show');
+    loadSlots();
   } catch (err) {
     alert(err.message || 'Error al agendar la cita');
     document.getElementById('modalErr').classList.add('show');

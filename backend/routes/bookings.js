@@ -1,6 +1,16 @@
 const express = require('express');
 const getSupabase = require('../db/supabase');
 const { sendBookingReceipt } = require('../services/gmail');
+const {
+  isValidFixedSlot,
+  getServiceDuration,
+  findAvailableBay,
+  getAvailableSlots,
+  isSunday,
+  isPastDate,
+  TOLERANCE_MINUTES,
+  TURNOVER_BUFFER_MINUTES,
+} = require('../utils/scheduling');
 
 const router = express.Router();
 
@@ -19,6 +29,27 @@ async function generateFolio() {
   return `${prefix}-${seq}`;
 }
 
+async function loadDayBookings(fecha) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`
+      id, hora, status, bay_number, duration_minutes, service_id,
+      services ( slug, categoria, duration_minutes )
+    `)
+    .eq('fecha', fecha)
+    .neq('status', 'cancelada');
+
+  if (error) throw error;
+
+  return (data || []).map((b) => ({
+    ...b,
+    duration_minutes: b.duration_minutes || getServiceDuration(b.services),
+    slug: b.services?.slug,
+    categoria: b.services?.categoria,
+  }));
+}
+
 function validateBooking(body) {
   const required = ['nombre', 'email', 'telefono', 'serviceId', 'fecha', 'hora', 'total'];
   for (const field of required) {
@@ -27,24 +58,65 @@ function validateBooking(body) {
     }
   }
 
-  const horaNum = parseInt(String(body.hora).split(':')[0], 10);
-  if (horaNum < 8 || horaNum >= 18) {
-    return 'El horario de atención es de 8:00 AM a 6:00 PM';
+  if (!isValidFixedSlot(body.hora)) {
+    return 'La hora debe ser en intervalos de 15 minutos (XX:00, XX:15, XX:30, XX:45) entre 8:00 y 17:45';
   }
 
-  const fecha = new Date(body.fecha + 'T12:00:00');
-  if (fecha.getDay() === 0) {
+  if (isSunday(body.fecha)) {
     return 'No trabajamos domingos';
   }
 
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  if (fecha < hoy) {
+  if (isPastDate(body.fecha)) {
     return 'La fecha no puede ser en el pasado';
   }
 
   return null;
 }
+
+/** Available slots for a date + service (respects 4 bays + duration + buffer) */
+router.get('/slots', async (req, res) => {
+  try {
+    const { fecha, serviceId } = req.query;
+    if (!fecha || !serviceId) {
+      return res.status(400).json({ error: 'Indica fecha y serviceId' });
+    }
+    if (isSunday(fecha)) {
+      return res.json({
+        slots: [],
+        meta: { bayCount: 4, toleranceMinutes: TOLERANCE_MINUTES, bufferMinutes: TURNOVER_BUFFER_MINUTES, reason: 'domingo' },
+      });
+    }
+
+    const supabase = getSupabase();
+    const { data: service, error: svcErr } = await supabase
+      .from('services')
+      .select('id, slug, categoria, duration_minutes, nombre')
+      .eq('id', serviceId)
+      .single();
+
+    if (svcErr || !service) {
+      return res.status(400).json({ error: 'Servicio no válido' });
+    }
+
+    const duration = getServiceDuration(service);
+    const existing = await loadDayBookings(fecha);
+    const slots = getAvailableSlots(existing, duration);
+
+    res.json({
+      slots,
+      durationMinutes: duration,
+      meta: {
+        bayCount: 4,
+        toleranceMinutes: TOLERANCE_MINUTES,
+        bufferMinutes: TURNOVER_BUFFER_MINUTES,
+        service: service.nombre,
+      },
+    });
+  } catch (err) {
+    console.error('GET slots:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'No se pudieron cargar los horarios' });
+  }
+});
 
 router.get('/folio/:folio', async (req, res) => {
   try {
@@ -55,7 +127,7 @@ router.get('/folio/:folio', async (req, res) => {
       .from('bookings')
       .select(`
         folio, nombre, email, telefono, fecha, hora, total, status,
-        vehiculo_tipo, tapiceria, created_at,
+        vehiculo_tipo, tapiceria, created_at, bay_number,
         services ( nombre )
       `)
       .eq('folio', folio)
@@ -84,6 +156,7 @@ router.get('/folio/:folio', async (req, res) => {
       status: data.status,
       vehiculoTipo: data.vehiculo_tipo,
       tapiceria: data.tapiceria,
+      bayNumber: data.bay_number,
     });
   } catch (err) {
     console.error('GET folio:', err.message);
@@ -153,12 +226,22 @@ router.post('/', async (req, res) => {
 
     const { data: service, error: svcErr } = await supabase
       .from('services')
-      .select('id, nombre')
+      .select('id, nombre, slug, categoria, duration_minutes')
       .eq('id', serviceId)
       .single();
 
     if (svcErr || !service) {
       return res.status(400).json({ error: 'Servicio no válido' });
+    }
+
+    const duration = getServiceDuration(service);
+    const existing = await loadDayBookings(fecha);
+    const bay = findAvailableBay(existing, hora, duration);
+
+    if (!bay) {
+      return res.status(409).json({
+        error: 'No hay espacios de lavado disponibles en ese horario para la duración del servicio. Elige otra hora.',
+      });
     }
 
     const folio = await generateFolio();
@@ -179,6 +262,8 @@ router.post('/', async (req, res) => {
         hora,
         total,
         status: 'pendiente',
+        bay_number: bay,
+        duration_minutes: duration,
       })
       .select('*, services(nombre)')
       .single();
@@ -209,6 +294,9 @@ router.post('/', async (req, res) => {
       fecha: booking.fecha,
       hora: String(booking.hora).slice(0, 5),
       total: Number(booking.total),
+      bayNumber: bay,
+      durationMinutes: duration,
+      toleranceMinutes: TOLERANCE_MINUTES,
     });
 
     res.status(201).json({
@@ -221,6 +309,8 @@ router.post('/', async (req, res) => {
       hora: booking.hora,
       total: Number(booking.total),
       status: booking.status,
+      bayNumber: bay,
+      durationMinutes: duration,
       emailSent: emailResult.sent,
     });
   } catch (err) {

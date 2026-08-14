@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de insumos — Car Solution</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-body">
+
+<nav>
+  <div class="nav-marca">
+    Gestión de insumos
+    <small>Car Solution</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/admin">← Dashboard</a></li>
+    <li><a href="/" id="btnLogout" class="nav-btn">Salir</a></li>
+  </ul>
+</nav>
+
+<div id="loginGate" class="admin-login-wrap hidden">
+  <div class="admin-login-box">
+    <h1>Sesión requerida</h1>
+    <p>Inicia sesión en el panel admin para gestionar inventario.</p>
+    <a class="btn-enviar" href="/admin" style="display:inline-block;text-align:center;text-decoration:none;margin-top:1rem;">Ir a Admin</a>
+  </div>
+</div>
+
+<div id="gestionView" class="admin-dashboard hidden">
+  <div class="admin-header">
+    <div>
+      <div class="seccion-label">Inventario</div>
+      <h1>Consulta de insumos</h1>
+      <p style="color:var(--gris);max-width:640px;margin-top:0.35rem;">
+        Ingresa la cantidad/peso real de cada material. Se compara con el stock teórico
+        (descontado al completar citas). Diferencia negativa = pérdida; positiva = sobrante.
+      </p>
+    </div>
+    <div class="admin-actions">
+      <button class="btn-admin outline" id="btnReloadInv">Actualizar</button>
+      <a class="btn-admin" href="/admin">Volver</a>
+    </div>
+  </div>
+
+  <div class="gestion-grid">
+    <div class="chart-card">
+      <h3>Stock teórico actual</h3>
+      <div id="stockList" class="stock-list"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Consultar inventario</h3>
+      <p class="hint-text">Mide lo que hay físicamente y guarda la consulta (puedes hacerlo varias veces al día).</p>
+      <form id="auditForm">
+        <div id="auditFields" class="audit-fields"></div>
+        <div class="campo" style="margin-top:1rem;">
+          <label>Notas (opcional)</label>
+          <input type="text" id="auditNotas" placeholder="Ej. cierre de turno mañana">
+        </div>
+        <label class="check-sync">
+          <input type="checkbox" id="syncStock" checked>
+          Ajustar stock teórico a la cantidad medida
+        </label>
+        <button type="submit" class="btn-enviar" style="margin-top:1rem;">Guardar consulta</button>
+      </form>
+      <div id="auditResult" class="scan-result hidden" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:1.5rem;">
+    <h3>Reabastecer</h3>
+    <div class="restock-row">
+      <select id="restockItem" class="filter-select"></select>
+      <input type="number" id="restockQty" class="filter-input" min="0.01" step="0.01" placeholder="Cantidad a agregar">
+      <button class="btn-admin" id="btnRestock">Agregar stock</button>
+    </div>
+  </div>
+
+  <div class="bookings-section" style="margin-top:2rem;">
+    <h3>Historial de consultas</h3>
+    <div id="auditHistory"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/gestion.js"></script>
+</body>
+</html>
