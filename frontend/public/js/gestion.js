@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'car_solution_admin_token';
+let ITEMS = [];
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -6,6 +7,11 @@ function getToken() {
 
 function formatNum(n) {
   return Number(n).toLocaleString('es-MX', { maximumFractionDigits: 2 });
+}
+
+function formatWhen(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 }
 
 function showGate() {
@@ -20,55 +26,61 @@ function showView() {
 
 function renderStock(items) {
   const list = document.getElementById('stockList');
+  if (!items.length) {
+    list.innerHTML = '<p class="hint-text">No hay productos en inventario.</p>';
+    return;
+  }
+
   list.innerHTML = items.map((i) => `
     <div class="stock-row">
       <div>
         <strong>${i.nombre}</strong>
-        <small>${i.unidad}</small>
+        <small>${i.unidad}${i.vendible ? ` · venta $${formatNum(i.precio)}` : ''}</small>
+        ${(i.descuentos || []).length
+          ? `<div class="stock-uses">${i.descuentos.map((d) =>
+              `${d.servicio}: ${formatNum(d.cantidad)} ${i.unidad}`
+            ).join(' · ')}</div>`
+          : ''}
       </div>
       <span class="stock-val">${formatNum(i.stockTeorico)}</span>
     </div>
   `).join('');
 
-  const fields = document.getElementById('auditFields');
-  fields.innerHTML = items.map((i) => `
-    <div class="campo audit-field">
-      <label>${i.nombre} <small>(${i.unidad}) — teórico: ${formatNum(i.stockTeorico)}</small></label>
-      <input type="number" step="0.01" min="0" data-id="${i.id}" class="medida-input" placeholder="Cantidad medida">
-    </div>
-  `).join('');
-
-  const sel = document.getElementById('restockItem');
+  const sel = document.getElementById('addItemSelect');
   sel.innerHTML = items.map((i) =>
-    `<option value="${i.id}">${i.nombre} (${i.unidad})</option>`
+    `<option value="${i.id}" data-unidad="${i.unidad}">${i.nombre} (${i.unidad}) — ${formatNum(i.stockTeorico)}</option>`
   ).join('');
+  updateAddLabel();
 }
 
-function renderHistory(audits) {
-  const box = document.getElementById('auditHistory');
-  if (!audits.length) {
-    box.innerHTML = '<p style="color:var(--gris);">Aún no hay consultas registradas.</p>';
+function renderConsumption(rows) {
+  const box = document.getElementById('consumptionList');
+  if (!rows.length) {
+    box.innerHTML = '<p class="hint-text">Aún no hay consumos registrados.</p>';
     return;
   }
 
-  box.innerHTML = audits.map((a) => {
-    const when = new Date(a.createdAt).toLocaleString('es-MX');
-    const lines = (a.lines || []).map((l) => {
-      const cls = l.resultado === 'perdida' ? 'diff-neg' : l.resultado === 'sobrante' ? 'diff-pos' : 'diff-ok';
-      const label = l.resultado === 'perdida' ? 'pérdida' : l.resultado === 'sobrante' ? 'sobrante' : 'exacto';
-      return `<li class="${cls}"><strong>${l.nombre}</strong>: medido ${formatNum(l.cantidadMedida)} / teórico ${formatNum(l.stockTeorico)} → Δ ${formatNum(l.diferencia)} (${label})</li>`;
-    }).join('');
-
-    return `
-      <div class="audit-card">
-        <div class="audit-card-head">
-          <strong>${when}</strong>
-          <span>${a.notas || 'Sin notas'}</span>
-        </div>
-        <ul>${lines}</ul>
+  box.innerHTML = rows.map((r) => `
+    <div class="consumption-row">
+      <div class="consumption-top">
+        <span class="consumo-tag ${r.tipo === 'venta' ? 'tag-venta' : 'tag-servicio'}">${r.tipo === 'venta' ? 'Venta' : 'Servicio'}</span>
+        <small>${formatWhen(r.createdAt)}</small>
       </div>
-    `;
-  }).join('');
+      <strong class="consumption-ref">${r.referencia}</strong>
+      <div class="consumption-prod">
+        −${formatNum(r.cantidad)} ${r.unidad}
+        <span>${r.producto}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateAddLabel() {
+  const sel = document.getElementById('addItemSelect');
+  const opt = sel.options[sel.selectedIndex];
+  const unidad = opt?.dataset.unidad || 'unidades';
+  document.getElementById('addQtyLabel').textContent = `Cantidad a agregar (${unidad})`;
+  document.getElementById('addQty').placeholder = `Ej. 100 ${unidad}`;
 }
 
 async function loadAll() {
@@ -76,12 +88,13 @@ async function loadAll() {
   if (!token) return showGate();
 
   try {
-    const [items, audits] = await Promise.all([
+    const [items, consumption] = await Promise.all([
       adminGet('/api/admin/inventory/items', token),
-      adminGet('/api/admin/inventory/audits', token),
+      adminGet('/api/admin/inventory/consumption', token),
     ]);
+    ITEMS = items;
     renderStock(items);
-    renderHistory(audits);
+    renderConsumption(consumption);
     showView();
   } catch (err) {
     console.error(err);
@@ -89,58 +102,48 @@ async function loadAll() {
   }
 }
 
-document.getElementById('auditForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const token = getToken();
-  const medidas = {};
-  document.querySelectorAll('.medida-input').forEach((input) => {
-    if (input.value !== '') medidas[input.dataset.id] = Number(input.value);
-  });
+function openAddModal() {
+  document.getElementById('addResult').classList.add('hidden');
+  document.getElementById('addQty').value = '';
+  updateAddLabel();
+  document.getElementById('addStockModal').classList.add('show');
+}
 
-  if (!Object.keys(medidas).length) {
-    alert('Ingresa al menos una cantidad medida');
+function closeAddModal() {
+  document.getElementById('addStockModal').classList.remove('show');
+}
+
+document.getElementById('btnOpenAdd').addEventListener('click', openAddModal);
+document.getElementById('btnCloseAdd').addEventListener('click', closeAddModal);
+document.getElementById('addStockModal').addEventListener('click', (e) => {
+  if (e.target.id === 'addStockModal') closeAddModal();
+});
+document.getElementById('addItemSelect').addEventListener('change', updateAddLabel);
+
+document.getElementById('btnConfirmAdd').addEventListener('click', async () => {
+  const token = getToken();
+  const itemId = document.getElementById('addItemSelect').value;
+  const cantidad = Number(document.getElementById('addQty').value);
+  const box = document.getElementById('addResult');
+
+  if (!itemId || !(cantidad > 0)) {
+    box.classList.remove('hidden', 'ok');
+    box.classList.add('err');
+    box.textContent = 'Selecciona producto y una cantidad positiva';
     return;
   }
 
   try {
-    const result = await apiPostAuth('/api/admin/inventory/audit', {
-      medidas,
-      notas: document.getElementById('auditNotas').value.trim(),
-      syncStock: document.getElementById('syncStock').checked,
-    }, token);
-
-    const box = document.getElementById('auditResult');
+    const item = await apiPostAuth('/api/admin/inventory/restock', { itemId, cantidad }, token);
     box.classList.remove('hidden', 'err');
     box.classList.add('ok');
-    box.innerHTML = `<strong>Consulta guardada</strong><br>` + result.lines.map((l) => {
-      const tag = l.resultado === 'perdida' ? 'pérdida' : l.resultado === 'sobrante' ? 'sobrante' : 'exacto';
-      return `${l.nombre}: Δ ${formatNum(l.diferencia)} (${tag})`;
-    }).join(' · ');
-
-    document.getElementById('auditNotas').value = '';
+    box.innerHTML = `<strong>Stock actualizado</strong><br>${item.nombre}: ahora ${formatNum(item.stockTeorico)} ${item.unidad}`;
+    document.getElementById('addQty').value = '';
     await loadAll();
   } catch (err) {
-    const box = document.getElementById('auditResult');
     box.classList.remove('hidden', 'ok');
     box.classList.add('err');
     box.textContent = err.message;
-  }
-});
-
-document.getElementById('btnRestock').addEventListener('click', async () => {
-  const token = getToken();
-  const itemId = document.getElementById('restockItem').value;
-  const cantidad = Number(document.getElementById('restockQty').value);
-  if (!itemId || !(cantidad > 0)) {
-    alert('Selecciona insumo y cantidad positiva');
-    return;
-  }
-  try {
-    await apiPostAuth('/api/admin/inventory/restock', { itemId, cantidad }, token);
-    document.getElementById('restockQty').value = '';
-    await loadAll();
-  } catch (err) {
-    alert(err.message);
   }
 });
 

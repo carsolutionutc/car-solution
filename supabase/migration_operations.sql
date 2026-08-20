@@ -78,15 +78,15 @@ ALTER TABLE inventory_usage_log ENABLE ROW LEVEL SECURITY;
 
 -- ── Seed materiales ────────────────────────────────────────
 INSERT INTO inventory_items (slug, nombre, unidad, stock_teorico) VALUES
-  ('cera',          'Cera',          'ml',   2000),
-  ('shampoo',       'Shampoo',       'ml',   5000),
-  ('trapos',        'Trapos',        'pzas', 50),
-  ('polish',        'Polish',        'ml',   1500),
-  ('almorol',       'Almorol',       'ml',   1000),
-  ('aromatizante',  'Aromatizante',  'pzas', 40),
-  ('cepillos',      'Cepillos',      'pzas', 20),
-  ('desengrasante', 'Desengrasante', 'ml',   3000),
-  ('microfibra',    'Paños microfibra', 'pzas', 30)
+  ('cera',          'Meguiar''s Ultimate Liquid Wax', 'ml',   2000),
+  ('shampoo',       'Meguiar''s Gold Class Car Wash', 'ml',   5000),
+  ('trapos',        'Chemical Guys Soft Microfiber Towels', 'pzas', 50),
+  ('polish',        'Meguiar''s Ultimate Polish', 'ml',   1500),
+  ('almorol',       'Armor All Protectant Original', 'ml',   1000),
+  ('aromatizante',  'Little Trees Black Ice', 'pzas', 40),
+  ('cepillos',      'Chemical Guys Soft Grip Brush', 'pzas', 20),
+  ('desengrasante', 'Marflo Max Force Degreaser', 'ml',   3000),
+  ('microfibra',    'The Rag Company Eagle Edgeless', 'pzas', 30)
 ON CONFLICT (slug) DO NOTHING;
 
 -- ── Consumo esperado por servicio (vía slugs) ──────────────

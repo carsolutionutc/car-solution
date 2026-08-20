@@ -25,6 +25,17 @@ async function initApp() {
     recalc();
     loadSlots();
   });
+
+  // Prefill from Google session if present
+  if (typeof getCustomer === 'function') {
+    const c = getCustomer();
+    if (c) {
+      const nom = document.getElementById('nombre');
+      const mail = document.getElementById('correo');
+      if (nom && !nom.value) nom.value = c.nombre || '';
+      if (mail && !mail.value) mail.value = c.email || '';
+    }
+  }
 }
 
 function populateServiceSelect() {
@@ -217,7 +228,7 @@ async function enviarCita() {
       total,
       extras: extrasPayload,
       extrasNombres,
-    });
+    }, typeof getCustomerToken === 'function' ? getCustomerToken() : null);
 
     document.getElementById('modalOkText').textContent = booking.emailSent
       ? 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con folio y código QR.'
@@ -248,4 +259,7 @@ function cerrar(id) {
   document.getElementById(id).classList.remove('show');
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof renderNavAuth === 'function') renderNavAuth('navAuthSlot');
+  initApp();
+});

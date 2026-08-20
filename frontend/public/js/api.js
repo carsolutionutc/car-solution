@@ -1,16 +1,20 @@
 const API = '';
 
-async function apiGet(path) {
-  const res = await fetch(API + path);
+async function apiGet(path, token) {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(API + path, { headers });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Error de servidor');
   return data;
 }
 
-async function apiPost(path, body) {
+async function apiPost(path, body, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(API + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
   const data = await res.json();

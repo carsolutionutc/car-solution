@@ -8,6 +8,8 @@ const servicesRouter = require('./routes/services');
 const bookingsRouter = require('./routes/bookings');
 const adminRouter = require('./routes/admin');
 const inventoryRouter = require('./routes/inventory');
+const authRouter = require('./routes/auth');
+const productsRouter = require('./routes/products');
 const { getGmailConfigStatus } = require('./services/gmail');
 const { startAutoCancelJob } = require('./jobs/autoCancel');
 
@@ -40,6 +42,7 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     database,
     gmail: gmail.configured ? 'configured' : { status: 'missing', fields: gmail.missing },
+    googleAuth: Boolean(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_CLIENT_ID),
     timestamp: new Date().toISOString(),
   });
 });
@@ -48,6 +51,8 @@ app.use('/api/services', servicesRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/inventory', inventoryRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/products', productsRouter);
 
 const publicDir = path.join(__dirname, '..', 'frontend', 'public');
 app.use(express.static(publicDir));
@@ -58,6 +63,14 @@ app.get('/admin', (_req, res) => {
 
 app.get('/admin/gestion', (_req, res) => {
   res.sendFile(path.join(publicDir, 'gestion.html'));
+});
+
+app.get('/productos', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'productos.html'));
+});
+
+app.get('/cuenta', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'cuenta.html'));
 });
 
 app.get('/cancelar', (_req, res) => {

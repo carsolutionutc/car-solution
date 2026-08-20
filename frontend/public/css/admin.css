@@ -510,6 +510,90 @@
 }
 
 .audit-card li { padding: 0.2rem 0; }
-.diff-neg { color: #b91c1c; }
-.diff-pos { color: #15803d; }
-.diff-ok { color: var(--gris); }
+.desc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--texto);
+}
+
+.desc-list li { padding: 0.15rem 0; }
+
+.inv-table-wrap { overflow-x: auto; }
+
+.stock-uses {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--gris);
+  line-height: 1.35;
+}
+
+.consumption-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.consumption-row {
+  background: var(--fondo);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+
+.consumption-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.consumo-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+}
+
+.tag-servicio { background: #dbeafe; color: #1d4ed8; }
+.tag-venta { background: #dcfce7; color: #15803d; }
+
+.consumption-ref {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 0.25rem;
+}
+
+.consumption-prod {
+  font-size: 0.82rem;
+  color: #b91c1c;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.consumption-prod span {
+  color: var(--gris);
+  font-weight: 500;
+  text-align: right;
+}
+
+#addStockModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,47,110,0.75);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(4px);
+}
+
+#addStockModal.show { display: flex; }

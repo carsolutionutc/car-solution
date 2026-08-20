@@ -1,6 +1,7 @@
 const express = require('express');
 const getSupabase = require('../db/supabase');
 const { sendBookingReceipt } = require('../services/gmail');
+const { optionalCustomer } = require('../middleware/auth');
 const {
   isValidFixedSlot,
   getServiceDuration,
@@ -211,7 +212,7 @@ router.post('/cancelar', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', optionalCustomer, async (req, res) => {
   try {
     const supabase = getSupabase();
     const err = validateBooking(req.body);
@@ -246,25 +247,30 @@ router.post('/', async (req, res) => {
 
     const folio = await generateFolio();
 
+    const insertRow = {
+      folio,
+      nombre: nombre.trim(),
+      email: email.trim(),
+      telefono: telefono.trim(),
+      service_id: serviceId,
+      vehiculo_tipo: vehiculoTipo,
+      vehiculo_extra: vehiculoExtra,
+      tapiceria,
+      tapiceria_extra: tapiceriaExtra,
+      fecha,
+      hora,
+      total,
+      status: 'pendiente',
+      bay_number: bay,
+      duration_minutes: duration,
+    };
+    if (req.customer?.customerId) {
+      insertRow.customer_id = req.customer.customerId;
+    }
+
     const { data: booking, error: bookErr } = await supabase
       .from('bookings')
-      .insert({
-        folio,
-        nombre: nombre.trim(),
-        email: email.trim(),
-        telefono: telefono.trim(),
-        service_id: serviceId,
-        vehiculo_tipo: vehiculoTipo,
-        vehiculo_extra: vehiculoExtra,
-        tapiceria,
-        tapiceria_extra: tapiceriaExtra,
-        fecha,
-        hora,
-        total,
-        status: 'pendiente',
-        bay_number: bay,
-        duration_minutes: duration,
-      })
+      .insert(insertRow)
       .select('*, services(nombre)')
       .single();
 

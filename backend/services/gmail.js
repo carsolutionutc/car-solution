@@ -227,8 +227,101 @@ async function sendBookingReceipt(data) {
   }
 }
 
+function buildOrderReceiptHtml(data) {
+  const itemsRows = (data.items || [])
+    .map((i) => row(`${i.nombre} × ${i.cantidad}`, formatMoney(i.subtotal)))
+    .join('');
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(13,71,161,0.10);">
+        <tr>
+          <td style="background:#0d47a1;padding:28px 32px;text-align:center;">
+            <h1 style="margin:0;color:#fff;font-size:28px;letter-spacing:1px;">Car Solution</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.75);font-size:13px;">Pedido de productos</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <p style="margin:0 0 8px;color:#6b7280;font-size:14px;">Hola <strong style="color:#1a1a2e;">${data.nombre}</strong>,</p>
+            <p style="margin:0 0 24px;color:#374151;font-size:14px;line-height:1.6;">
+              Tu compra quedó registrada. Presenta este código QR en el negocio para recoger tus productos.
+              Folio: <strong style="color:#0d47a1;">${data.folio}</strong>.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+              <tr>
+                <td align="center" style="padding:16px;background:#f8fafc;border-radius:12px;border:1px solid #e5e7eb;">
+                  <img src="cid:booking-qr" alt="QR ${data.folio}" width="200" height="200" style="display:block;margin:0 auto 12px;border:0;" />
+                  <p style="margin:0;font-size:13px;color:#0d47a1;font-weight:700;letter-spacing:1px;">${data.folio}</p>
+                  <p style="margin:6px 0 0;font-size:11px;color:#6b7280;">Escanea en recepción para confirmar entrega</p>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;border-radius:10px;padding:4px 0;">
+              ${row('Folio', data.folio)}
+              ${itemsRows}
+              ${row('Total', formatMoney(data.total), true)}
+            </table>
+            <p style="margin:24px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
+              Recoge en: Calle 1 Núm 432, Deportivo Pensil, CDMX · Lun–Sáb 8:00 AM – 6:00 PM.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#0d47a1;padding:16px 32px;text-align:center;">
+            <p style="margin:0;color:rgba(255,255,255,0.7);font-size:12px;">Car Solution — Tienda de insumos</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendOrderReceipt(data) {
+  const status = getGmailConfigStatus();
+  if (!status.configured) {
+    console.warn(`Gmail API no configurado — faltan: ${status.missing.join(', ')}`);
+    return { sent: false, reason: 'not_configured', missing: status.missing };
+  }
+
+  try {
+    const gmail = await getGmailClient();
+    const subject = `Car Solution — Pedido ${data.folio} listo para recoger`;
+    const html = buildOrderReceiptHtml(data);
+    const qrPngBuffer = await QRCode.toBuffer(String(data.folio), {
+      type: 'png',
+      width: 280,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+    });
+
+    await sendRawEmail(gmail, { to: data.email, subject, html, qrPngBuffer });
+
+    if (process.env.GMAIL_NOTIFY_TO) {
+      await sendRawEmail(gmail, {
+        to: process.env.GMAIL_NOTIFY_TO,
+        subject: `[Admin] Nuevo pedido ${data.folio} — ${data.nombre}`,
+        html: buildOrderReceiptHtml({ ...data, nombre: `Pedido: ${data.nombre}` }),
+        qrPngBuffer,
+      });
+    }
+
+    return { sent: true };
+  } catch (err) {
+    console.error('Gmail order send error:', err.message);
+    return { sent: false, reason: err.message };
+  }
+}
+
 module.exports = {
   sendBookingReceipt,
+  sendOrderReceipt,
   isGmailConfigured,
   getGmailConfigStatus,
   getOAuthClient,

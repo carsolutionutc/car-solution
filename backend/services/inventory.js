@@ -30,6 +30,7 @@ async function applyServiceConsumption(bookingId, serviceId) {
 
     await supabase.from('inventory_usage_log').insert({
       booking_id: bookingId,
+      origen: 'servicio',
       item_id: row.item_id,
       cantidad: qty,
     });
@@ -44,12 +45,132 @@ async function listInventory() {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('inventory_items')
-    .select('id, slug, nombre, unidad, stock_teorico, activo')
+    .select('id, slug, nombre, unidad, stock_teorico, precio, vendible, pack_cantidad, descripcion, activo')
     .eq('activo', true)
     .order('nombre');
 
   if (error) throw error;
   return data || [];
+}
+
+/** Inventory with which services consume each item */
+async function listInventoryOverview() {
+  const supabase = getSupabase();
+  const items = await listInventory();
+
+  const { data: mats, error } = await supabase
+    .from('service_materials')
+    .select('item_id, cantidad, services ( nombre, slug )');
+
+  if (error) throw error;
+
+  const byItem = {};
+  (mats || []).forEach((m) => {
+    if (!byItem[m.item_id]) byItem[m.item_id] = [];
+    byItem[m.item_id].push({
+      servicio: m.services?.nombre || 'Servicio',
+      cantidad: Number(m.cantidad),
+    });
+  });
+
+  return items.map((i) => ({
+    id: i.id,
+    slug: i.slug,
+    nombre: i.nombre,
+    unidad: i.unidad,
+    stockTeorico: Number(i.stock_teorico),
+    precio: Number(i.precio) || 0,
+    vendible: i.vendible !== false,
+    packCantidad: Number(i.pack_cantidad) || 1,
+    descripcion: i.descripcion || '',
+    descuentos: byItem[i.id] || [],
+  }));
+}
+
+/** Recent consumption from completed services and product pickups */
+async function listConsumptionLog(limit = 80) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('inventory_usage_log')
+    .select(`
+      id, cantidad, created_at, booking_id, order_id, origen,
+      inventory_items ( nombre, unidad, slug ),
+      bookings ( folio, services ( nombre ) ),
+      product_orders ( folio, nombre )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (data || []).map((row) => {
+    const isOrder = Boolean(row.order_id) || row.origen === 'venta';
+    const servicio = row.bookings?.services?.nombre;
+    const folio = isOrder
+      ? (row.product_orders?.folio || 'Pedido')
+      : (row.bookings?.folio || null);
+
+    return {
+      id: row.id,
+      cantidad: Number(row.cantidad),
+      createdAt: row.created_at,
+      producto: row.inventory_items?.nombre || 'Producto',
+      unidad: row.inventory_items?.unidad || '',
+      tipo: isOrder ? 'venta' : 'servicio',
+      referencia: isOrder
+        ? `Compra ${folio}${row.product_orders?.nombre ? ` — ${row.product_orders.nombre}` : ''}`
+        : (servicio ? `Servicio: ${servicio}` : 'Servicio completado') + (folio ? ` (${folio})` : ''),
+    };
+  });
+}
+
+/** Deduct stock when a product order is picked up */
+async function applyOrderConsumption(orderId) {
+  const supabase = getSupabase();
+  const { data: lines, error } = await supabase
+    .from('product_order_items')
+    .select('item_id, cantidad, pack_cantidad, inventory_items ( id, stock_teorico, nombre )')
+    .eq('order_id', orderId);
+
+  if (error) throw error;
+  if (!lines?.length) return { deducted: [] };
+
+  const deducted = [];
+
+  for (const row of lines) {
+    const packs = Number(row.cantidad);
+    const packSize = Number(row.pack_cantidad) || 1;
+    const qty = packs * packSize;
+    const item = row.inventory_items;
+    if (!item) continue;
+
+    const newStock = Number(item.stock_teorico) - qty;
+    if (newStock < -0.0001) {
+      throw Object.assign(
+        new Error(`Stock insuficiente de ${item.nombre} al entregar el pedido`),
+        { status: 409 }
+      );
+    }
+
+    const { error: upErr } = await supabase
+      .from('inventory_items')
+      .update({ stock_teorico: Math.max(0, newStock) })
+      .eq('id', row.item_id);
+
+    if (upErr) throw upErr;
+
+    await supabase.from('inventory_usage_log').insert({
+      booking_id: null,
+      order_id: orderId,
+      origen: 'venta',
+      item_id: row.item_id,
+      cantidad: qty,
+    });
+
+    deducted.push({ itemId: row.item_id, cantidad: qty, stockTeorico: newStock });
+  }
+
+  return { deducted };
 }
 
 /**
@@ -162,7 +283,10 @@ async function restockItem(itemId, cantidad) {
 
 module.exports = {
   applyServiceConsumption,
+  applyOrderConsumption,
   listInventory,
+  listInventoryOverview,
+  listConsumptionLog,
   saveInventoryAudit,
   listAudits,
   restockItem,

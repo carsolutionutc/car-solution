@@ -33,55 +33,49 @@
   <div class="admin-header">
     <div>
       <div class="seccion-label">Inventario</div>
-      <h1>Consulta de insumos</h1>
+      <h1>Consultar inventario</h1>
       <p style="color:var(--gris);max-width:640px;margin-top:0.35rem;">
-        Ingresa la cantidad/peso real de cada material. Se compara con el stock teórico
-        (descontado al completar citas). Diferencia negativa = pérdida; positiva = sobrante.
+        Stock actual a la izquierda. A la derecha, el consumo real por servicio completado o compra de producto entregada.
       </p>
     </div>
     <div class="admin-actions">
+      <button class="btn-admin" id="btnOpenAdd">Agregar al inventario</button>
       <button class="btn-admin outline" id="btnReloadInv">Actualizar</button>
-      <a class="btn-admin" href="/admin">Volver</a>
+      <a class="btn-admin outline" href="/admin">Volver</a>
     </div>
   </div>
 
   <div class="gestion-grid">
     <div class="chart-card">
-      <h3>Stock teórico actual</h3>
+      <h3>Stock actual</h3>
       <div id="stockList" class="stock-list"></div>
     </div>
 
     <div class="chart-card">
-      <h3>Consultar inventario</h3>
-      <p class="hint-text">Mide lo que hay físicamente y guarda la consulta (puedes hacerlo varias veces al día).</p>
-      <form id="auditForm">
-        <div id="auditFields" class="audit-fields"></div>
-        <div class="campo" style="margin-top:1rem;">
-          <label>Notas (opcional)</label>
-          <input type="text" id="auditNotas" placeholder="Ej. cierre de turno mañana">
-        </div>
-        <label class="check-sync">
-          <input type="checkbox" id="syncStock" checked>
-          Ajustar stock teórico a la cantidad medida
-        </label>
-        <button type="submit" class="btn-enviar" style="margin-top:1rem;">Guardar consulta</button>
-      </form>
-      <div id="auditResult" class="scan-result hidden" style="margin-top:1rem;"></div>
+      <h3>Consumo (servicios y ventas)</h3>
+      <p class="hint-text">Se registra al completar una cita o al entregar un pedido con QR.</p>
+      <div id="consumptionList" class="consumption-list"></div>
     </div>
   </div>
+</div>
 
-  <div class="chart-card" style="margin-top:1.5rem;">
-    <h3>Reabastecer</h3>
-    <div class="restock-row">
-      <select id="restockItem" class="filter-select"></select>
-      <input type="number" id="restockQty" class="filter-input" min="0.01" step="0.01" placeholder="Cantidad a agregar">
-      <button class="btn-admin" id="btnRestock">Agregar stock</button>
+<div class="modal-overlay" id="addStockModal">
+  <div class="modal-box modal-wide">
+    <h3>Agregar al inventario</h3>
+    <p class="hint-text">Selecciona el producto de marca y la cantidad a sumar (según su unidad).</p>
+    <div class="campo">
+      <label>Producto</label>
+      <select id="addItemSelect" class="filter-select" style="width:100%;"></select>
     </div>
-  </div>
-
-  <div class="bookings-section" style="margin-top:2rem;">
-    <h3>Historial de consultas</h3>
-    <div id="auditHistory"></div>
+    <div class="campo" id="addQtyWrap">
+      <label id="addQtyLabel">Cantidad</label>
+      <input type="number" id="addQty" class="filter-input" style="width:100%;" min="0.01" step="0.01" placeholder="0">
+    </div>
+    <div id="addResult" class="scan-result hidden" style="margin-top:0.75rem;"></div>
+    <div style="display:flex;gap:0.75rem;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn-admin" id="btnConfirmAdd">Guardar</button>
+      <button class="btn-cerrar" id="btnCloseAdd" type="button">Cerrar</button>
+    </div>
   </div>
 </div>
 

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const getSupabase = require('../db/supabase');
 const { requireAdmin } = require('../middleware/auth');
 const { filterByPeriod, buildAnalytics } = require('../utils/analytics');
-const { applyServiceConsumption } = require('../services/inventory');
+const { applyServiceConsumption, applyOrderConsumption } = require('../services/inventory');
 
 const router = express.Router();
 
@@ -93,14 +93,57 @@ router.get('/bookings/:id', requireAdmin, async (req, res) => {
 
 /**
  * QR scan flow:
- * pendiente → confirmada (check-in)
- * confirmada → completada (checkout + inventory deduct)
+ * - CIT-… bookings: pendiente → confirmada → completada (+ inventario servicio)
+ * - ORD-… pedidos: pendiente → entregado (+ inventario productos)
  */
 router.post('/scan', requireAdmin, async (req, res) => {
   try {
     const supabase = getSupabase();
     const folio = String(req.body.folio || '').trim().toUpperCase();
     if (!folio) return res.status(400).json({ error: 'Folio requerido' });
+
+    // Pedidos de tienda
+    if (folio.startsWith('ORD-')) {
+      const { data: order, error: ordErr } = await supabase
+        .from('product_orders')
+        .select('id, folio, nombre, status, total')
+        .eq('folio', folio)
+        .single();
+
+      if (ordErr || !order) {
+        return res.status(404).json({ error: 'Pedido no encontrado' });
+      }
+      if (order.status === 'cancelada') {
+        return res.status(400).json({ error: 'Este pedido está cancelado', folio, status: order.status });
+      }
+      if (order.status === 'entregado') {
+        return res.status(400).json({ error: 'Este pedido ya fue entregado', folio, status: order.status });
+      }
+
+      await applyOrderConsumption(order.id);
+
+      const now = new Date().toISOString();
+      const { data, error: upErr } = await supabase
+        .from('product_orders')
+        .update({ status: 'entregado', picked_up_at: now })
+        .eq('id', order.id)
+        .eq('status', 'pendiente')
+        .select('id, folio, status, picked_up_at')
+        .single();
+
+      if (upErr || !data) throw upErr || new Error('No se pudo confirmar la entrega');
+
+      return res.json({
+        action: 'order_pickup',
+        type: 'order',
+        message: `Pedido entregado — ${order.nombre}. Inventario descontado.`,
+        folio: data.folio,
+        status: data.status,
+        previousStatus: 'pendiente',
+        total: Number(order.total),
+        cliente: order.nombre,
+      });
+    }
 
     const { data: booking, error } = await supabase
       .from('bookings')
@@ -134,6 +177,7 @@ router.post('/scan', requireAdmin, async (req, res) => {
 
       return res.json({
         action: 'check_in',
+        type: 'booking',
         message: `Check-in OK — ${booking.nombre}. Cita confirmada.`,
         folio: data.folio,
         status: data.status,
@@ -163,6 +207,7 @@ router.post('/scan', requireAdmin, async (req, res) => {
 
       return res.json({
         action: 'complete',
+        type: 'booking',
         message: `Servicio finalizado — ${booking.nombre}. Cita completada e insumos descontados.`,
         folio: data.folio,
         status: data.status,

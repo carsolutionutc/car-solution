@@ -1,0 +1,215 @@
+.store-body { padding-top: 62px; min-height: 100vh; background: var(--fondo); }
+
+.store-hero {
+  padding: 2.5rem 2rem 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.store-hero h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.store-hero p { color: var(--gris); max-width: 560px; }
+
+.store-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .store-layout { grid-template-columns: 1fr; }
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.product-card h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+}
+
+.product-card p {
+  color: var(--gris);
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.product-badge {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--azul);
+  background: var(--azulclaro);
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+}
+
+.product-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-weight: 700;
+}
+
+.product-meta small { font-weight: 500; color: var(--gris); }
+
+.cart-panel {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 80px;
+}
+
+.cart-panel h2 {
+  font-family: 'Oswald', sans-serif;
+  margin-bottom: 1rem;
+}
+
+.cart-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--gris2);
+  font-size: 0.9rem;
+}
+
+.cart-row small { display: block; color: var(--gris); font-size: 0.75rem; }
+
+.cart-qty {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cart-qty button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--gris2);
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.cart-remove { color: #ef4444 !important; border-color: #fecaca !important; }
+
+.cart-footer { margin-top: 1rem; }
+.cart-total { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 1.05rem; }
+.checkout-google { margin-bottom: 0.75rem; min-height: 20px; }
+
+.nav-user {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.cuenta-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem 3rem;
+}
+
+.cuenta-card {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  box-shadow: var(--sombra);
+  margin-bottom: 1rem;
+}
+
+.cuenta-card h2 {
+  font-family: 'Oswald', sans-serif;
+  margin-bottom: 1rem;
+}
+
+.cuenta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 800px) {
+  .cuenta-grid { grid-template-columns: 1fr; }
+}
+
+.cuenta-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.cuenta-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--gris2);
+  font-size: 0.9rem;
+}
+
+.cuenta-row small { display: block; color: var(--gris); margin-top: 0.15rem; }
+.cuenta-amt { font-weight: 700; color: var(--azul); }
+.auth-hint { color: var(--gris); font-size: 0.85rem; }
+
+#orderModal.show { display: flex; }
+#orderModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,47,110,0.75);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
