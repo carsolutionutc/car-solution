@@ -17,9 +17,19 @@
   </div>
   <ul class="nav-links">
     <li><a href="/">Inicio</a></li>
-    <li><a href="/productos">Productos</a></li>
-    <li><a href="/carrito" class="nav-cart-btn nav-link-active">Carrito <span class="cart-badge hidden" data-cart-count></span></a></li>
-    <li><a href="/cuenta" class="nav-account-btn">Mi cuenta</a></li>
+    <li>
+      <a href="/productos" class="nav-chip">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/></svg>
+        <span class="nav-chip-label">Productos</span>
+      </a>
+    </li>
+    <li>
+      <a href="/carrito" class="nav-chip nav-chip-cart nav-chip-active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.4 11h9.2L20 8H7"/></svg>
+        <span class="nav-chip-label">Carrito</span>
+        <span class="cart-badge hidden" data-cart-count></span>
+      </a>
+    </li>
     <li id="navAuthSlot"></li>
   </ul>
 </nav>

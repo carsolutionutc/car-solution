@@ -146,14 +146,17 @@ function renderNavAuth(slotId) {
   if (!slot) return;
   const customer = getCustomer();
   if (customer) {
+    const name = (customer.nombre || 'Cuenta').split(' ')[0];
     slot.innerHTML = `
-      <a href="/cuenta" class="nav-user nav-account-btn">
-        ${customer.fotoUrl ? `<img src="${customer.fotoUrl}" alt="" class="nav-avatar">` : ''}
-        <span>${customer.nombre?.split(' ')[0] || 'Cuenta'}</span>
+      <a href="/cuenta" class="nav-chip nav-user" title="${name}">
+        ${customer.fotoUrl
+          ? `<img src="${customer.fotoUrl}" alt="" class="nav-avatar" width="26" height="26">`
+          : `<span class="nav-avatar nav-avatar-fallback">${name.charAt(0).toUpperCase()}</span>`}
+        <span class="nav-user-name">${name}</span>
       </a>
     `;
   } else {
-    slot.innerHTML = `<a href="/cuenta" class="nav-account-btn">Entrar</a>`;
+    slot.innerHTML = `<a href="/cuenta" class="nav-chip">Entrar</a>`;
   }
   updateCartBadge();
 }
