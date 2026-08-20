@@ -34,35 +34,51 @@
   </ul>
 </nav>
 
-<section class="store-hero">
-  <div>
-    <div class="seccion-label">Cliente</div>
-    <h1 id="cuentaTitle">Mi cuenta</h1>
-    <p id="cuentaSub">Inicia sesión con Google para ver tus citas y pedidos.</p>
+<section class="page-hero page-hero-account">
+  <div class="page-hero-inner">
+    <div class="page-hero-copy">
+      <span class="page-kicker">Cliente</span>
+      <h1 id="cuentaTitle">Mi cuenta</h1>
+      <p id="cuentaSub">Inicia sesión con Google para ver tus citas y pedidos.</p>
+      <div class="page-hero-actions" id="cuentaHeroActions"></div>
+    </div>
+    <div class="page-hero-panel" id="cuentaHeroPanel"></div>
   </div>
 </section>
 
 <section class="cuenta-wrap">
-  <div id="loginBox" class="cuenta-card">
-    <h2>Entrar con Google</h2>
-    <p class="hint-text">Usamos tu cuenta de Google para validar tu identidad y que puedas consultar tus citas y compras.</p>
-    <div id="googleBtn" style="margin-top:1rem;"></div>
+  <div id="loginBox" class="cuenta-login-card">
+    <div class="login-visual">
+      <div class="login-badge">Google</div>
+      <h2>Entra en segundos</h2>
+      <p>Validamos tu identidad con Google para que consultes citas, pedidos y recogidas con QR.</p>
+    </div>
+    <div class="login-action">
+      <div id="googleBtn"></div>
+      <small class="hint-text">No guardamos tu contraseña de Google.</small>
+    </div>
   </div>
 
   <div id="accountView" class="hidden">
     <div class="cuenta-actions">
-      <a class="btn-admin outline" href="/productos">Ir a productos</a>
-      <a class="btn-admin outline" href="/#cotizar">Agendar cita</a>
-      <button class="btn-admin" id="btnLogoutCustomer">Cerrar sesión</button>
+      <a class="store-btn store-btn-primary" href="/productos">Ver productos</a>
+      <a class="store-btn store-btn-ghost" href="/#cotizar">Agendar cita</a>
+      <button class="store-btn store-btn-quiet" id="btnLogoutCustomer">Cerrar sesión</button>
     </div>
 
     <div class="cuenta-grid">
       <div class="cuenta-card">
-        <h2>Mis citas</h2>
+        <div class="cuenta-card-head">
+          <h2>Mis citas</h2>
+          <span class="summary-pill">Servicios</span>
+        </div>
         <div id="myBookings"><p class="hint-text">Cargando...</p></div>
       </div>
       <div class="cuenta-card">
-        <h2>Mis pedidos</h2>
+        <div class="cuenta-card-head">
+          <h2>Mis pedidos</h2>
+          <span class="summary-pill">Tienda</span>
+        </div>
         <div id="myOrders"><p class="hint-text">Cargando...</p></div>
       </div>
     </div>

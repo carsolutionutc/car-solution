@@ -14,7 +14,7 @@ function renderCart() {
     box.innerHTML = `
       <div class="cart-empty">
         <p>Tu carrito está vacío.</p>
-        <a href="/productos" class="btn-admin">Ver productos</a>
+        <a href="/productos" class="store-btn store-btn-primary" style="margin-top:1rem;">Explorar productos</a>
       </div>`;
     btn.disabled = true;
     hint.textContent = '';
@@ -61,7 +61,7 @@ function renderCart() {
   const logged = Boolean(getCustomerToken());
   btn.disabled = !logged;
   hint.textContent = logged
-    ? 'Al comprar recibirás un correo con QR para recoger en el local. La compra aparecerá en Gestión de inmediato.'
+    ? 'Al comprar recibirás un correo con QR para recoger. La compra se verá en Gestión de inmediato.'
     : 'Inicia sesión con Google para comprar.';
 }
 

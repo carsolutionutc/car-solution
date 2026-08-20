@@ -11,18 +11,22 @@ function renderProducts() {
     return;
   }
 
-  grid.innerHTML = PRODUCTS.map((p) => `
-    <article class="product-card">
-      <div class="product-badge">${p.unidad}</div>
-      <h3>${p.nombre}</h3>
-      <p>${p.descripcion || 'Insumo automotriz'}</p>
-      <div class="product-meta">
-        <span>${money(p.precio)} / unidad</span>
-        <small>Contenido: ${p.packCantidad} ${p.unidad} · Disp.: ${p.packsDisponibles}</small>
+  grid.innerHTML = PRODUCTS.map((p, idx) => `
+    <article class="product-card" style="animation-delay:${idx * 0.04}s">
+      <div class="product-card-top">
+        <div class="product-badge">${p.unidad}</div>
+        <h3>${p.nombre}</h3>
       </div>
-      <button class="btn-admin" data-add="${p.id}" ${p.packsDisponibles < 1 ? 'disabled' : ''}>
-        ${p.packsDisponibles < 1 ? 'Agotado' : 'Agregar al carrito'}
-      </button>
+      <div class="product-card-body">
+        <p>${p.descripcion || 'Insumo automotriz'}</p>
+        <div class="product-meta">
+          <span class="product-price">${money(p.precio)}</span>
+          <small>Pack ${p.packCantidad} ${p.unidad} · Disponibles: ${p.packsDisponibles}</small>
+        </div>
+        <button class="store-btn store-btn-card" data-add="${p.id}" ${p.packsDisponibles < 1 ? 'disabled' : ''}>
+          ${p.packsDisponibles < 1 ? 'Agotado' : 'Agregar al carrito'}
+        </button>
+      </div>
     </article>
   `).join('');
 
@@ -31,10 +35,9 @@ function renderProducts() {
       const prod = PRODUCTS.find((p) => p.id === btn.dataset.add);
       if (!prod) return;
       addToCart(prod, 1);
+      const prev = btn.textContent;
       btn.textContent = '✓ Agregado';
-      setTimeout(() => {
-        btn.textContent = 'Agregar al carrito';
-      }, 900);
+      setTimeout(() => { btn.textContent = prev; }, 900);
     });
   });
 }

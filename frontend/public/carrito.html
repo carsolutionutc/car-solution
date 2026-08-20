@@ -34,26 +34,39 @@
   </ul>
 </nav>
 
-<section class="store-hero">
-  <div>
-    <div class="seccion-label">Compra</div>
-    <h1>Tu carrito</h1>
-    <p>Revisa tus productos, ajusta cantidades y confirma la compra. Te enviaremos un QR para recogerlos.</p>
+<section class="page-hero page-hero-cart">
+  <div class="page-hero-inner">
+    <div class="page-hero-copy">
+      <span class="page-kicker">Checkout</span>
+      <h1>Tu carrito<br><span>listo para comprar</span></h1>
+      <p>Ajusta cantidades, confirma y recibe tu folio QR por correo para recoger en el negocio.</p>
+      <div class="page-hero-actions">
+        <a href="/productos" class="store-btn store-btn-ghost">Seguir comprando</a>
+      </div>
+    </div>
   </div>
-  <a href="/productos" class="btn-hero2" style="text-decoration:none;">Seguir comprando</a>
 </section>
 
 <section class="cart-page">
   <div class="cart-page-main">
+    <div class="section-head tight">
+      <h2>Artículos</h2>
+    </div>
     <div id="cartItems" class="cart-page-items"></div>
   </div>
   <aside class="cart-panel cart-summary">
-    <h2>Resumen</h2>
-    <div class="cart-total">Total <strong id="cartTotal">$0</strong></div>
+    <div class="summary-head">
+      <h2>Resumen</h2>
+      <span class="summary-pill">Pago al recoger</span>
+    </div>
+    <div class="cart-total">
+      <span>Total estimado</span>
+      <strong id="cartTotal">$0</strong>
+    </div>
     <p id="cartHint" class="hint-text"></p>
     <div id="checkoutGoogle" class="checkout-google"></div>
-    <button class="btn-enviar" id="btnCheckout" disabled>Realizar compra</button>
-    <button class="btn-admin outline" id="btnClearCart" style="width:100%;margin-top:0.75rem;">Vaciar carrito</button>
+    <button class="store-btn store-btn-primary store-btn-block" id="btnCheckout" disabled>Realizar compra</button>
+    <button class="store-btn store-btn-quiet store-btn-block" id="btnClearCart" type="button">Vaciar carrito</button>
   </aside>
 </section>
 

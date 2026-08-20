@@ -6,6 +6,36 @@ function statusLabel(s) {
   return s || '—';
 }
 
+function renderAccountHero(customer) {
+  const actions = document.getElementById('cuentaHeroActions');
+  const panel = document.getElementById('cuentaHeroPanel');
+  if (!customer) {
+    actions.innerHTML = '';
+    panel.innerHTML = `
+      <div class="hero-stat-block">
+        <strong>Acceso seguro</strong>
+        <span>Google Sign-In para citas y pedidos</span>
+      </div>`;
+    return;
+  }
+
+  actions.innerHTML = `
+    <a href="/productos" class="store-btn store-btn-primary">Ir a tienda</a>
+    <a href="/#cotizar" class="store-btn store-btn-ghost">Nueva cita</a>
+  `;
+  panel.innerHTML = `
+    <div class="profile-mini">
+      ${customer.fotoUrl
+        ? `<img src="${customer.fotoUrl}" alt="">`
+        : `<span class="nav-avatar-fallback">${(customer.nombre || 'C').charAt(0).toUpperCase()}</span>`}
+      <div>
+        <strong>${customer.nombre || 'Cliente'}</strong>
+        <span>${customer.email || ''}</span>
+      </div>
+    </div>
+  `;
+}
+
 async function loadAccountData() {
   const token = getCustomerToken();
   const customer = getCustomer();
@@ -14,6 +44,7 @@ async function loadAccountData() {
     document.getElementById('accountView').classList.add('hidden');
     document.getElementById('cuentaTitle').textContent = 'Mi cuenta';
     document.getElementById('cuentaSub').textContent = 'Inicia sesión con Google para ver tus citas y pedidos.';
+    renderAccountHero(null);
     await initGoogleButton('googleBtn', { onSuccess: afterLogin });
     return;
   }
@@ -21,7 +52,8 @@ async function loadAccountData() {
   document.getElementById('loginBox').classList.add('hidden');
   document.getElementById('accountView').classList.remove('hidden');
   document.getElementById('cuentaTitle').textContent = `Hola, ${customer.nombre?.split(' ')[0] || 'cliente'}`;
-  document.getElementById('cuentaSub').textContent = customer.email;
+  document.getElementById('cuentaSub').textContent = 'Aquí tienes el historial de tus citas y compras.';
+  renderAccountHero(customer);
 
   try {
     const [bookings, orders] = await Promise.all([
