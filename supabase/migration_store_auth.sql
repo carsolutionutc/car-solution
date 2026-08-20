@@ -32,48 +32,48 @@ ALTER TABLE inventory_items
 
 UPDATE inventory_items SET
   precio = 80, pack_cantidad = 500,
-  nombre = 'Meguiar''s Gold Class Car Wash',
-  descripcion = 'Shampoo automotriz Meguiar''s Gold Class — botella 500 ml'
+  nombre = 'Armor All Ultra Shine Lavado y Encerado',
+  descripcion = 'Shampoo con cera Armor All Ultra Shine — AutoZone México'
   WHERE slug = 'shampoo';
 UPDATE inventory_items SET
   precio = 120, pack_cantidad = 250,
-  nombre = 'Meguiar''s Ultimate Liquid Wax',
-  descripcion = 'Cera líquida Meguiar''s Ultimate (250 ml)'
+  nombre = 'Turtle Wax Super Hard Shell',
+  descripcion = 'Cera en pasta Turtle Wax Super Hard Shell — AutoZone México'
   WHERE slug = 'cera';
 UPDATE inventory_items SET
   precio = 45, pack_cantidad = 5, unidad = 'pzas',
-  nombre = 'Chemical Guys Soft Microfiber Towels',
-  descripcion = 'Paquete de 5 trapos Chemical Guys'
+  nombre = 'AutoZone Trapos de Microfibra',
+  descripcion = 'Paquete de trapos de microfibra marca AutoZone'
   WHERE slug = 'trapos';
 UPDATE inventory_items SET
   precio = 150, pack_cantidad = 200,
   nombre = 'Meguiar''s Ultimate Polish',
-  descripcion = 'Polish Meguiar''s Ultimate (200 ml)'
+  descripcion = 'Polish Meguiar''s Ultimate — AutoZone México'
   WHERE slug = 'polish';
 UPDATE inventory_items SET
   precio = 90, pack_cantidad = 200,
   nombre = 'Armor All Protectant Original',
-  descripcion = 'Protector Armor All / Almorol para interiores (200 ml)'
+  descripcion = 'Protector Armor All Original para interiores'
   WHERE slug = 'almorol';
 UPDATE inventory_items SET
   precio = 35, pack_cantidad = 1,
   nombre = 'Little Trees Black Ice',
-  descripcion = 'Aromatizante Little Trees Black Ice (1 pza)'
+  descripcion = 'Aromatizante Little Trees Black Ice'
   WHERE slug = 'aromatizante';
 UPDATE inventory_items SET
   precio = 60, pack_cantidad = 1,
-  nombre = 'Chemical Guys Soft Grip Brush',
-  descripcion = 'Cepillo de detalle Chemical Guys (1 pza)'
+  nombre = 'Armor All Cepillo de Detalle',
+  descripcion = 'Cepillo de detalle Armor All'
   WHERE slug = 'cepillos';
 UPDATE inventory_items SET
   precio = 70, pack_cantidad = 500,
-  nombre = 'Marflo Max Force Degreaser',
-  descripcion = 'Desengrasante Marflo Max Force (500 ml)'
+  nombre = 'Turtle Wax Bug & Tar Remover',
+  descripcion = 'Removedor / desengrasante Turtle Wax Bug & Tar'
   WHERE slug = 'desengrasante';
 UPDATE inventory_items SET
   precio = 55, pack_cantidad = 3,
-  nombre = 'The Rag Company Eagle Edgeless',
-  descripcion = 'Paquete de 3 paños The Rag Company'
+  nombre = 'AutoZone Paños Microfibra Premium',
+  descripcion = 'Paños de microfibra premium AutoZone'
   WHERE slug = 'microfibra';
 
 -- ── Pedidos de productos ───────────────────────────────────

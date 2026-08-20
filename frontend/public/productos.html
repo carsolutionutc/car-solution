@@ -17,8 +17,9 @@
   </div>
   <ul class="nav-links">
     <li><a href="/">Inicio</a></li>
-    <li><a href="/productos">Productos</a></li>
-    <li><a href="/#cotizar">Agendar</a></li>
+    <li><a href="/productos" class="nav-link-active">Productos</a></li>
+    <li><a href="/carrito" class="nav-cart-btn">Carrito <span class="cart-badge hidden" data-cart-count></span></a></li>
+    <li><a href="/cuenta" class="nav-account-btn">Mi cuenta</a></li>
     <li id="navAuthSlot"></li>
   </ul>
 </nav>
@@ -27,38 +28,16 @@
   <div>
     <div class="seccion-label">Tienda</div>
     <h1>Productos para tu auto</h1>
-    <p>Los mismos insumos del lavado, listos para llevar. Compra, recibe tu QR por correo y recoge en el local.</p>
+    <p>Marcas disponibles en México. Agrega al carrito y finaliza la compra cuando quieras.</p>
   </div>
+  <a href="/carrito" class="btn-hero" style="text-decoration:none;">Ver carrito</a>
 </section>
 
-<section class="store-layout">
-  <div>
-    <div id="productsGrid" class="products-grid">
-      <p style="color:var(--gris);">Cargando productos...</p>
-    </div>
+<section class="store-catalog">
+  <div id="productsGrid" class="products-grid">
+    <p style="color:var(--gris);">Cargando productos...</p>
   </div>
-
-  <aside class="cart-panel" id="cartPanel">
-    <h2>Tu carrito</h2>
-    <div id="cartItems"></div>
-    <div class="cart-footer">
-      <div class="cart-total">Total <strong id="cartTotal">$0</strong></div>
-      <p id="cartHint" class="hint-text"></p>
-      <div id="checkoutGoogle" class="checkout-google"></div>
-      <button class="btn-enviar" id="btnCheckout" disabled>Realizar compra</button>
-    </div>
-  </aside>
 </section>
-
-<div class="modal-overlay" id="orderModal">
-  <div class="modal-box">
-    <div class="modal-icono">✓</div>
-    <h3>¡Pedido registrado!</h3>
-    <p id="orderModalText">Revisa tu correo — te enviamos el QR para recoger.</p>
-    <div class="modal-detalles" id="orderModalDetails"></div>
-    <button class="btn-cerrar" id="btnCloseOrderModal">Listo</button>
-  </div>
-</div>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>

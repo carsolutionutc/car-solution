@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito — Car Solution</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/store.css">
+</head>
+<body class="store-body">
+
+<nav>
+  <div class="nav-marca">
+    Car Solution
+    <small>Carrito</small>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/">Inicio</a></li>
+    <li><a href="/productos">Productos</a></li>
+    <li><a href="/carrito" class="nav-cart-btn nav-link-active">Carrito <span class="cart-badge hidden" data-cart-count></span></a></li>
+    <li><a href="/cuenta" class="nav-account-btn">Mi cuenta</a></li>
+    <li id="navAuthSlot"></li>
+  </ul>
+</nav>
+
+<section class="store-hero">
+  <div>
+    <div class="seccion-label">Compra</div>
+    <h1>Tu carrito</h1>
+    <p>Revisa tus productos, ajusta cantidades y confirma la compra. Te enviaremos un QR para recogerlos.</p>
+  </div>
+  <a href="/productos" class="btn-hero2" style="text-decoration:none;">Seguir comprando</a>
+</section>
+
+<section class="cart-page">
+  <div class="cart-page-main">
+    <div id="cartItems" class="cart-page-items"></div>
+  </div>
+  <aside class="cart-panel cart-summary">
+    <h2>Resumen</h2>
+    <div class="cart-total">Total <strong id="cartTotal">$0</strong></div>
+    <p id="cartHint" class="hint-text"></p>
+    <div id="checkoutGoogle" class="checkout-google"></div>
+    <button class="btn-enviar" id="btnCheckout" disabled>Realizar compra</button>
+    <button class="btn-admin outline" id="btnClearCart" style="width:100%;margin-top:0.75rem;">Vaciar carrito</button>
+  </aside>
+</section>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box">
+    <div class="modal-icono">✓</div>
+    <h3>¡Pedido registrado!</h3>
+    <p id="orderModalText">Revisa tu correo — te enviamos el QR para recoger.</p>
+    <div class="modal-detalles" id="orderModalDetails"></div>
+    <button class="btn-cerrar" id="btnCloseOrderModal">Listo</button>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/carrito.js"></script>
+</body>
+</html>

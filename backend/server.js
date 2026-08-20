@@ -69,6 +69,10 @@ app.get('/productos', (_req, res) => {
   res.sendFile(path.join(publicDir, 'productos.html'));
 });
 
+app.get('/carrito', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'carrito.html'));
+});
+
 app.get('/cuenta', (_req, res) => {
   res.sendFile(path.join(publicDir, 'cuenta.html'));
 });

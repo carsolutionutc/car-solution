@@ -35,12 +35,7 @@ function renderStock(items) {
     <div class="stock-row">
       <div>
         <strong>${i.nombre}</strong>
-        <small>${i.unidad}${i.vendible ? ` · venta $${formatNum(i.precio)}` : ''}</small>
-        ${(i.descuentos || []).length
-          ? `<div class="stock-uses">${i.descuentos.map((d) =>
-              `${d.servicio}: ${formatNum(d.cantidad)} ${i.unidad}`
-            ).join(' · ')}</div>`
-          : ''}
+        <small>${i.unidad}${i.vendible ? ` · $${formatNum(i.precio)}` : ''}</small>
       </div>
       <span class="stock-val">${formatNum(i.stockTeorico)}</span>
     </div>
@@ -60,19 +55,25 @@ function renderConsumption(rows) {
     return;
   }
 
-  box.innerHTML = rows.map((r) => `
+  box.innerHTML = rows.map((r) => {
+    const isMoney = r.unidad === 'MXN';
+    const amount = isMoney
+      ? `$${formatNum(r.cantidad)}`
+      : `−${formatNum(r.cantidad)} ${r.unidad}`;
+    const estado = r.estado === 'pendiente' ? 'Pendiente' : r.estado === 'entregado' ? 'Entregado' : '';
+    return `
     <div class="consumption-row">
       <div class="consumption-top">
         <span class="consumo-tag ${r.tipo === 'venta' ? 'tag-venta' : 'tag-servicio'}">${r.tipo === 'venta' ? 'Venta' : 'Servicio'}</span>
-        <small>${formatWhen(r.createdAt)}</small>
+        <small>${formatWhen(r.createdAt)}${estado ? ` · ${estado}` : ''}</small>
       </div>
       <strong class="consumption-ref">${r.referencia}</strong>
       <div class="consumption-prod">
-        −${formatNum(r.cantidad)} ${r.unidad}
+        <span class="${isMoney ? 'amt-money' : ''}">${amount}</span>
         <span>${r.producto}</span>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function updateAddLabel() {

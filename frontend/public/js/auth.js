@@ -147,17 +147,13 @@ function renderNavAuth(slotId) {
   const customer = getCustomer();
   if (customer) {
     slot.innerHTML = `
-      <a href="/cuenta" class="nav-user">
+      <a href="/cuenta" class="nav-user nav-account-btn">
         ${customer.fotoUrl ? `<img src="${customer.fotoUrl}" alt="" class="nav-avatar">` : ''}
-        <span>${customer.nombre?.split(' ')[0] || 'Mi cuenta'}</span>
+        <span>${customer.nombre?.split(' ')[0] || 'Cuenta'}</span>
       </a>
-      <a href="/productos" class="nav-cart-link">Carrito <span class="cart-badge" data-cart-count></span></a>
     `;
   } else {
-    slot.innerHTML = `
-      <a href="/cuenta">Entrar</a>
-      <a href="/productos" class="nav-cart-link">Carrito <span class="cart-badge hidden" data-cart-count></span></a>
-    `;
+    slot.innerHTML = `<a href="/cuenta" class="nav-account-btn">Entrar</a>`;
   }
   updateCartBadge();
 }

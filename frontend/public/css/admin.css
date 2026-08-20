@@ -584,6 +584,8 @@
   text-align: right;
 }
 
+.amt-money { color: var(--azul) !important; font-weight: 700; }
+
 #addStockModal {
   display: none;
   position: fixed;

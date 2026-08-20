@@ -4,6 +4,11 @@
   padding: 2.5rem 2rem 1rem;
   max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .store-hero h1 {
@@ -14,19 +19,74 @@
 
 .store-hero p { color: var(--gris); max-width: 560px; }
 
-.store-layout {
+.store-catalog {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem 3rem;
+}
+
+.cart-page {
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem 2rem 3rem;
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 300px;
   gap: 1.5rem;
   align-items: start;
 }
 
 @media (max-width: 900px) {
-  .store-layout { grid-template-columns: 1fr; }
+  .cart-page { grid-template-columns: 1fr; }
 }
+
+.cart-page-items {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--sombra);
+}
+
+.cart-page-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--gris2);
+}
+
+.cart-page-row small { display: block; color: var(--gris); font-size: 0.75rem; }
+.cart-line-total { font-weight: 700; color: var(--azul); min-width: 70px; text-align: right; }
+.cart-empty { text-align: center; padding: 2rem 1rem; color: var(--gris); }
+.cart-empty a { margin-top: 1rem; display: inline-block; }
+
+.nav-cart-btn,
+.nav-account-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem !important;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.nav-cart-btn:hover,
+.nav-account-btn:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff !important;
+}
+
+.nav-link-active {
+  background: #fff !important;
+  color: var(--azul) !important;
+  border-color: #fff !important;
+}
+
+.amt-money { color: var(--azul) !important; }
 
 .products-grid {
   display: grid;

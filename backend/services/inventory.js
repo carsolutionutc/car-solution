@@ -87,41 +87,115 @@ async function listInventoryOverview() {
   }));
 }
 
-/** Recent consumption from completed services and product pickups */
+/** Recent consumption: servicios + compras (pendientes y entregadas) */
 async function listConsumptionLog(limit = 80) {
   const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from('inventory_usage_log')
-    .select(`
-      id, cantidad, created_at, booking_id, order_id, origen,
-      inventory_items ( nombre, unidad, slug ),
-      bookings ( folio, services ( nombre ) ),
-      product_orders ( folio, nombre )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(limit);
 
-  if (error) throw error;
+  const [{ data: usage, error: usageErr }, { data: orders, error: ordersErr }] = await Promise.all([
+    supabase
+      .from('inventory_usage_log')
+      .select(`
+        id, cantidad, created_at, booking_id, order_id, origen,
+        inventory_items ( nombre, unidad, slug )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('product_orders')
+      .select(`
+        id, folio, nombre, status, total, created_at, picked_up_at,
+        product_order_items ( nombre, cantidad, subtotal )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(40),
+  ]);
 
-  return (data || []).map((row) => {
+  if (usageErr) throw usageErr;
+  if (ordersErr) throw ordersErr;
+
+  const bookingIds = [...new Set((usage || []).map((u) => u.booking_id).filter(Boolean))];
+  let bookingMap = {};
+  if (bookingIds.length) {
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('id, folio, services ( nombre )')
+      .in('id', bookingIds);
+    bookingMap = Object.fromEntries((bookings || []).map((b) => [b.id, b]));
+  }
+
+  const orderIds = [...new Set((usage || []).map((u) => u.order_id).filter(Boolean))];
+  let orderMap = {};
+  if (orderIds.length) {
+    const { data: ordRows } = await supabase
+      .from('product_orders')
+      .select('id, folio, nombre')
+      .in('id', orderIds);
+    orderMap = Object.fromEntries((ordRows || []).map((o) => [o.id, o]));
+  }
+
+  const rows = [];
+
+  // Compras registradas (aunque aún no se hayan entregado / descontado)
+  (orders || []).forEach((o) => {
+    const itemsLabel = (o.product_order_items || [])
+      .map((i) => `${i.nombre}×${i.cantidad}`)
+      .join(', ');
+    rows.push({
+      id: `order-${o.id}`,
+      cantidad: Number(o.total),
+      createdAt: o.picked_up_at || o.created_at,
+      producto: itemsLabel || 'Pedido de productos',
+      unidad: 'MXN',
+      tipo: 'venta',
+      estado: o.status,
+      referencia: o.status === 'entregado'
+        ? `Compra entregada ${o.folio} — ${o.nombre}`
+        : o.status === 'cancelada'
+          ? `Compra cancelada ${o.folio}`
+          : `Compra registrada ${o.folio} — ${o.nombre} (pendiente de recoger)`,
+    });
+  });
+
+  (usage || []).forEach((row) => {
     const isOrder = Boolean(row.order_id) || row.origen === 'venta';
-    const servicio = row.bookings?.services?.nombre;
-    const folio = isOrder
-      ? (row.product_orders?.folio || 'Pedido')
-      : (row.bookings?.folio || null);
+    // Evitar duplicar pedidos ya listados arriba cuando es venta
+    if (isOrder) return;
 
-    return {
+    const booking = row.booking_id ? bookingMap[row.booking_id] : null;
+    const servicio = booking?.services?.nombre;
+    const folio = booking?.folio;
+
+    rows.push({
       id: row.id,
       cantidad: Number(row.cantidad),
       createdAt: row.created_at,
       producto: row.inventory_items?.nombre || 'Producto',
       unidad: row.inventory_items?.unidad || '',
-      tipo: isOrder ? 'venta' : 'servicio',
-      referencia: isOrder
-        ? `Compra ${folio}${row.product_orders?.nombre ? ` — ${row.product_orders.nombre}` : ''}`
-        : (servicio ? `Servicio: ${servicio}` : 'Servicio completado') + (folio ? ` (${folio})` : ''),
-    };
+      tipo: 'servicio',
+      estado: 'completada',
+      referencia: (servicio ? `Servicio: ${servicio}` : 'Servicio completado') + (folio ? ` (${folio})` : ''),
+    });
   });
+
+  // También agregar líneas de descuento por entrega (detalle por producto)
+  (usage || []).forEach((row) => {
+    const isOrder = Boolean(row.order_id) || row.origen === 'venta';
+    if (!isOrder) return;
+    const ord = row.order_id ? orderMap[row.order_id] : null;
+    rows.push({
+      id: `usage-${row.id}`,
+      cantidad: Number(row.cantidad),
+      createdAt: row.created_at,
+      producto: row.inventory_items?.nombre || 'Producto',
+      unidad: row.inventory_items?.unidad || '',
+      tipo: 'venta',
+      estado: 'entregado',
+      referencia: `Descuento por entrega ${ord?.folio || ''}`.trim(),
+    });
+  });
+
+  rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return rows.slice(0, limit);
 }
 
 /** Deduct stock when a product order is picked up */
