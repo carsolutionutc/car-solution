@@ -7,6 +7,7 @@ const {
   getServiceDuration,
   findAvailableBay,
   getAvailableSlots,
+  filterPastSlotsToday,
   isSunday,
   isPastDate,
   TOLERANCE_MINUTES,
@@ -101,10 +102,15 @@ router.get('/slots', async (req, res) => {
 
     const duration = getServiceDuration(service);
     const existing = await loadDayBookings(fecha);
-    const slots = getAvailableSlots(existing, duration);
+    let slots = filterPastSlotsToday(fecha, getAvailableSlots(existing, duration));
+    const preferred = req.query.preferredHora || null;
+    const suggestedHora = preferred
+      ? (slots.find((h) => h >= String(preferred).slice(0, 5)) || slots[0] || null)
+      : (slots[0] || null);
 
     res.json({
       slots,
+      suggestedHora,
       durationMinutes: duration,
       meta: {
         bayCount: 4,
@@ -240,8 +246,14 @@ router.post('/', optionalCustomer, async (req, res) => {
     const bay = findAvailableBay(existing, hora, duration);
 
     if (!bay) {
+      const available = filterPastSlotsToday(fecha, getAvailableSlots(existing, duration));
+      const suggestedHora = available.find((h) => h > String(hora).slice(0, 5)) || available[0] || null;
       return res.status(409).json({
-        error: 'No hay espacios de lavado disponibles en ese horario para la duración del servicio. Elige otra hora.',
+        error: suggestedHora
+          ? `Ese horario no está disponible (espacios ocupados). El siguiente libre es ${suggestedHora}.`
+          : 'No hay espacios de lavado disponibles en ese horario para la duración del servicio.',
+        suggestedHora,
+        availableSlots: available,
       });
     }
 
@@ -318,6 +330,7 @@ router.post('/', optionalCustomer, async (req, res) => {
       bayNumber: bay,
       durationMinutes: duration,
       emailSent: emailResult.sent,
+      emailReason: emailResult.reason || null,
     });
   } catch (err) {
     console.error('POST /api/bookings:', err.message);

@@ -165,9 +165,18 @@ async function loadSlots() {
     }
 
     horaSel.innerHTML = '<option value="">Elige una hora</option>' +
-      data.slots.map((h) => `<option value="${h}">${h}</option>`).join('');
+      data.slots.map((h) => {
+        const mark = data.suggestedHora === h ? ' ← siguiente disponible' : '';
+        return `<option value="${h}">${h}${mark}</option>`;
+      }).join('');
 
-    hint.textContent = `Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min entre citas · tolerancia llegada ${data.meta?.toleranceMinutes || 15} min`;
+    if (data.suggestedHora) {
+      horaSel.value = data.suggestedHora;
+    }
+
+    hint.textContent = data.suggestedHora
+      ? `Siguiente horario libre: ${data.suggestedHora}. Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min · tolerancia ${data.meta?.toleranceMinutes || 15} min`
+      : `Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min entre citas · tolerancia llegada ${data.meta?.toleranceMinutes || 15} min`;
   } catch (err) {
     horaSel.innerHTML = '<option value="">Error al cargar horarios</option>';
     hint.textContent = err.message || 'Error';
@@ -230,9 +239,14 @@ async function enviarCita() {
       extrasNombres,
     }, typeof getCustomerToken === 'function' ? getCustomerToken() : null);
 
-    document.getElementById('modalOkText').textContent = booking.emailSent
-      ? 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con folio y código QR.'
-      : 'Tu cita quedó registrada. Guarda tu folio de confirmación.';
+    let mailMsg = 'Tu cita quedó registrada. Guarda tu folio de confirmación.';
+    if (booking.emailSent) {
+      mailMsg = 'Tu cita quedó registrada. Revisa tu correo — te enviamos el recibo con folio y código QR.';
+    } else if (booking.emailReason && booking.emailReason !== 'not_configured') {
+      mailMsg = `Tu cita quedó registrada (folio listo). El correo no se pudo enviar: ${booking.emailReason}. Guarda tu folio.`;
+    }
+
+    document.getElementById('modalOkText').textContent = mailMsg;
 
     document.getElementById('modalDetalles').innerHTML = `
       <div class="modal-linea"><span>Folio</span><span>${booking.folio}</span></div>
@@ -247,7 +261,24 @@ async function enviarCita() {
     document.getElementById('modalOk').classList.add('show');
     loadSlots();
   } catch (err) {
-    alert(err.message || 'Error al agendar la cita');
+    const suggested = err.data?.suggestedHora;
+    if (suggested) {
+      const useNext = confirm(`${err.message}\n\n¿Usar el siguiente horario libre (${suggested})?`);
+      if (useNext) {
+        const horaSel = document.getElementById('hora');
+        if (![...horaSel.options].some((o) => o.value === suggested)) {
+          horaSel.insertAdjacentHTML('beforeend', `<option value="${suggested}">${suggested}</option>`);
+        }
+        horaSel.value = suggested;
+        await loadSlots();
+        horaSel.value = suggested;
+        btn.disabled = false;
+        btn.textContent = 'Confirmar y Enviar Cita →';
+        return;
+      }
+    } else {
+      alert(err.message || 'Error al agendar la cita');
+    }
     document.getElementById('modalErr').classList.add('show');
   } finally {
     btn.disabled = false;

@@ -223,7 +223,12 @@ async function sendBookingReceipt(data) {
     return { sent: true };
   } catch (err) {
     console.error('Gmail send error:', err.message);
-    return { sent: false, reason: err.message };
+    const msg = String(err.message || '');
+    let reason = msg;
+    if (/invalid_grant/i.test(msg)) {
+      reason = 'invalid_grant: regenera GMAIL_REFRESH_TOKEN con npm run gmail:auth y actualízalo en Render';
+    }
+    return { sent: false, reason };
   }
 }
 
@@ -315,7 +320,12 @@ async function sendOrderReceipt(data) {
     return { sent: true };
   } catch (err) {
     console.error('Gmail order send error:', err.message);
-    return { sent: false, reason: err.message };
+    const msg = String(err.message || '');
+    let reason = msg;
+    if (/invalid_grant/i.test(msg)) {
+      reason = 'invalid_grant: regenera GMAIL_REFRESH_TOKEN con npm run gmail:auth y actualízalo en Render';
+    }
+    return { sent: false, reason };
   }
 }
 

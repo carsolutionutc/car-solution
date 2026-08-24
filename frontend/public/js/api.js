@@ -4,8 +4,13 @@ async function apiGet(path, token) {
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(API + path, { headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error de servidor');
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || 'Error de servidor');
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
   return data;
 }
 
@@ -17,8 +22,13 @@ async function apiPost(path, body, token) {
     headers,
     body: JSON.stringify(body),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error de servidor');
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || 'Error de servidor');
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
   return data;
 }
 

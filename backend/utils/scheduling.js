@@ -116,6 +116,24 @@ function getAvailableSlots(existing, durationMins) {
   });
 }
 
+/** Next free slot at or after preferredHora (or first of day). */
+function suggestNextSlot(existing, durationMins, preferredHora) {
+  const slots = getAvailableSlots(existing, durationMins);
+  if (!slots.length) return null;
+  if (!preferredHora) return slots[0];
+  const pref = parseTimeToMinutes(preferredHora);
+  return slots.find((h) => parseTimeToMinutes(h) >= pref) || slots[0];
+}
+
+/** Slots still in the future for "today" (local), keep all for future dates */
+function filterPastSlotsToday(fechaStr, slots) {
+  const now = new Date();
+  const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if (fechaStr !== ymd) return slots;
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return slots.filter((h) => parseTimeToMinutes(h) > nowMins);
+}
+
 function isSunday(fechaStr) {
   const d = new Date(`${fechaStr}T12:00:00`);
   return d.getDay() === 0;
@@ -151,6 +169,8 @@ module.exports = {
   getServiceDuration,
   findAvailableBay,
   getAvailableSlots,
+  suggestNextSlot,
+  filterPastSlotsToday,
   generateDaySlots,
   isSunday,
   isPastDate,

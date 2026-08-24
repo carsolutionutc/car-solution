@@ -419,6 +419,51 @@
   color: #991b1b;
 }
 
+.walkin-panel {
+  background: #fff;
+  border: 1.5px solid var(--gris2);
+  border-radius: var(--radio);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: var(--sombra);
+}
+
+.walkin-header h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.walkin-header p {
+  color: var(--gris);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.walkin-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.walkin-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--texto);
+}
+
+.walkin-hint {
+  margin-top: 0.85rem;
+  font-size: 0.88rem;
+  color: var(--gris);
+}
+
+.walkin-hint.ok { color: #166534; }
+.walkin-hint.err { color: #991b1b; }
+
 /* Gestión inventario */
 .gestion-grid {
   display: grid;

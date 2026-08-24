@@ -4,8 +4,56 @@ const getSupabase = require('../db/supabase');
 const { requireAdmin } = require('../middleware/auth');
 const { filterByPeriod, buildAnalytics } = require('../utils/analytics');
 const { applyServiceConsumption, applyOrderConsumption } = require('../services/inventory');
+const { sendBookingReceipt } = require('../services/gmail');
+const {
+  isValidFixedSlot,
+  getServiceDuration,
+  findAvailableBay,
+  getAvailableSlots,
+  filterPastSlotsToday,
+  suggestNextSlot,
+  isSunday,
+  isPastDate,
+  minutesToTime,
+  parseTimeToMinutes,
+  TOLERANCE_MINUTES,
+} = require('../utils/scheduling');
 
 const router = express.Router();
+
+async function generateAdminFolio() {
+  const supabase = getSupabase();
+  const today = new Date();
+  const prefix = `CIT-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+  const { count, error } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', today.toISOString().split('T')[0]);
+  if (error) throw error;
+  return `${prefix}-${String((count || 0) + 1).padStart(4, '0')}`;
+}
+
+async function loadDayBookingsAdmin(fecha) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`
+      id, hora, status, bay_number, duration_minutes, service_id,
+      services ( slug, categoria, duration_minutes )
+    `)
+    .eq('fecha', fecha)
+    .neq('status', 'cancelada');
+  if (error) throw error;
+  return (data || []).map((b) => ({
+    ...b,
+    duration_minutes: b.duration_minutes || getServiceDuration(b.services),
+  }));
+}
+
+function roundUpToSlot(mins) {
+  const step = 15;
+  return Math.ceil(mins / step) * step;
+}
 
 const BOOKING_SELECT = `
   id, folio, nombre, email, telefono, fecha, hora, total, status,
@@ -222,6 +270,157 @@ router.post('/scan', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('POST admin/scan:', err.message);
     res.status(err.status || 500).json({ error: err.message || 'No se pudo procesar el QR' });
+  }
+});
+
+/**
+ * Walk-in / cita en el momento: admin agenda ya (hoy u otra fecha).
+ * Si walkIn=true y no hay hora, usa el siguiente slot libre.
+ * Si checkInNow=true, deja la cita en confirmada (cliente ya en local).
+ */
+router.post('/bookings', requireAdmin, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const {
+      nombre,
+      telefono,
+      email,
+      serviceId,
+      fecha: fechaIn,
+      hora: horaIn,
+      vehiculoTipo = 'Auto / Sedan',
+      tapiceria = 'Tela',
+      total,
+      walkIn = true,
+      checkInNow = true,
+      sendEmail = false,
+    } = req.body;
+
+    if (!nombre?.trim() || !telefono?.trim() || !serviceId) {
+      return res.status(400).json({ error: 'Nombre, teléfono y servicio son obligatorios' });
+    }
+
+    const hoy = new Date();
+    const fecha =
+      fechaIn ||
+      `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+    if (isSunday(fecha)) {
+      return res.status(400).json({ error: 'No se agenda en domingo' });
+    }
+    if (isPastDate(fecha)) {
+      return res.status(400).json({ error: 'La fecha no puede ser en el pasado' });
+    }
+
+    const { data: service, error: svcErr } = await supabase
+      .from('services')
+      .select('id, nombre, slug, categoria, duration_minutes, precio_base')
+      .eq('id', serviceId)
+      .single();
+
+    if (svcErr || !service) {
+      return res.status(400).json({ error: 'Servicio no válido' });
+    }
+
+    const duration = getServiceDuration(service);
+    const existing = await loadDayBookingsAdmin(fecha);
+    const available = filterPastSlotsToday(fecha, getAvailableSlots(existing, duration));
+
+    let hora = horaIn ? String(horaIn).slice(0, 5) : null;
+    if (!hora && walkIn) {
+      const nowMins = hoy.getHours() * 60 + hoy.getMinutes();
+      const preferred = minutesToTime(roundUpToSlot(nowMins));
+      hora = available.find((h) => parseTimeToMinutes(h) >= parseTimeToMinutes(preferred)) || available[0] || null;
+      if (!hora) {
+        hora = suggestNextSlot(existing, duration, preferred);
+      }
+    }
+
+    if (!hora || !isValidFixedSlot(hora)) {
+      return res.status(409).json({
+        error: 'No hay horario disponible. Elige otra hora o fecha.',
+        availableSlots: available,
+        suggestedHora: available[0] || null,
+      });
+    }
+
+    const bay = findAvailableBay(existing, hora, duration);
+    if (!bay) {
+      const suggestedHora = available.find((h) => h > hora) || available[0] || null;
+      return res.status(409).json({
+        error: suggestedHora
+          ? `Ese horario está ocupado. El siguiente libre es ${suggestedHora}.`
+          : 'Sin bahías libres en ese horario.',
+        suggestedHora,
+        availableSlots: available,
+      });
+    }
+
+    const folio = await generateAdminFolio();
+    const mail = (email && String(email).trim()) || `walkin+${folio.toLowerCase()}@carsolution.local`;
+    const status = checkInNow ? 'confirmada' : 'pendiente';
+    const precio = total != null ? Number(total) : Number(service.precio_base) || 0;
+
+    const insertRow = {
+      folio,
+      nombre: nombre.trim(),
+      email: mail,
+      telefono: telefono.trim(),
+      service_id: serviceId,
+      vehiculo_tipo: vehiculoTipo,
+      vehiculo_extra: 0,
+      tapiceria,
+      tapiceria_extra: 0,
+      fecha,
+      hora,
+      total: precio,
+      status,
+      bay_number: bay,
+      duration_minutes: duration,
+    };
+    if (checkInNow) {
+      insertRow.checked_in_at = new Date().toISOString();
+    }
+
+    const { data: booking, error: bookErr } = await supabase
+      .from('bookings')
+      .insert(insertRow)
+      .select('id, folio, nombre, email, telefono, fecha, hora, total, status, bay_number, duration_minutes')
+      .single();
+
+    if (bookErr) throw bookErr;
+
+    let emailResult = { sent: false, reason: 'skipped' };
+    if (sendEmail && email && String(email).includes('@') && !String(email).includes('@carsolution.local')) {
+      emailResult = await sendBookingReceipt({
+        folio: booking.folio,
+        nombre: booking.nombre,
+        email: booking.email,
+        telefono: booking.telefono,
+        servicio: service.nombre,
+        vehiculoTipo,
+        tapiceria,
+        extrasNombres: [],
+        fecha: booking.fecha,
+        hora: String(booking.hora).slice(0, 5),
+        total: Number(booking.total),
+        bayNumber: bay,
+        durationMinutes: duration,
+        toleranceMinutes: TOLERANCE_MINUTES,
+      });
+    }
+
+    res.status(201).json({
+      ...booking,
+      hora: String(booking.hora).slice(0, 5),
+      servicio: service.nombre,
+      emailSent: emailResult.sent,
+      emailReason: emailResult.reason || null,
+      walkIn: Boolean(walkIn),
+    });
+  } catch (err) {
+    console.error('POST admin/bookings:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'No se pudo crear la cita walk-in' });
   }
 });
 

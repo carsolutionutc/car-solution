@@ -322,6 +322,14 @@ async function loadDashboard() {
     renderCharts(analytics);
     renderBookings(bookings);
     showDashboard();
+
+    const wiFecha = document.getElementById('wiFecha');
+    if (wiFecha && !wiFecha.value) {
+      const hoy = new Date();
+      wiFecha.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    }
+    await loadWalkInServices();
+    await loadWalkInSlots();
   } catch (err) {
     clearToken();
     showLogin();
@@ -396,6 +404,106 @@ function setPeriod(period) {
   if (period !== 'custom') loadDashboard();
 }
 
+async function loadWalkInServices() {
+  const sel = document.getElementById('wiServicio');
+  if (!sel) return;
+  try {
+    const data = await apiGet('/api/services');
+    sel.innerHTML = '<option value="">Servicio *</option>' +
+      (data.services || []).map((s) =>
+        `<option value="${s.id}" data-precio="${s.precio}">${s.nom} — $${Number(s.precio).toLocaleString('es-MX')}</option>`
+      ).join('');
+  } catch {
+    sel.innerHTML = '<option value="">Error al cargar servicios</option>';
+  }
+}
+
+async function loadWalkInSlots() {
+  const fecha = document.getElementById('wiFecha').value;
+  const serviceId = document.getElementById('wiServicio').value;
+  const horaSel = document.getElementById('wiHora');
+  if (!fecha || !serviceId) {
+    horaSel.innerHTML = '<option value="">Hora automática (siguiente libre)</option>';
+    return;
+  }
+  try {
+    const data = await apiGet(`/api/bookings/slots?fecha=${encodeURIComponent(fecha)}&serviceId=${encodeURIComponent(serviceId)}`);
+    horaSel.innerHTML = '<option value="">Hora automática (siguiente libre)</option>' +
+      (data.slots || []).map((h) => {
+        const mark = data.suggestedHora === h ? ' ← sugerida' : '';
+        return `<option value="${h}">${h}${mark}</option>`;
+      }).join('');
+    if (data.suggestedHora) {
+      document.getElementById('walkinHint').textContent =
+        `Siguiente libre: ${data.suggestedHora} (~${data.durationMinutes} min)`;
+    }
+  } catch (err) {
+    horaSel.innerHTML = '<option value="">Sin horarios</option>';
+    document.getElementById('walkinHint').textContent = err.message || '';
+  }
+}
+
+async function submitWalkIn() {
+  const token = getToken();
+  const hint = document.getElementById('walkinHint');
+  const nombre = document.getElementById('wiNombre').value.trim();
+  const telefono = document.getElementById('wiTelefono').value.trim();
+  const email = document.getElementById('wiEmail').value.trim();
+  const serviceId = document.getElementById('wiServicio').value;
+  const fecha = document.getElementById('wiFecha').value;
+  const hora = document.getElementById('wiHora').value;
+  const checkInNow = document.getElementById('wiCheckIn').checked;
+  const sendEmail = document.getElementById('wiSendMail').checked;
+  const precio = document.getElementById('wiServicio').selectedOptions[0]?.dataset.precio;
+
+  if (!nombre || !telefono || !serviceId) {
+    hint.className = 'walkin-hint err';
+    hint.textContent = 'Nombre, teléfono y servicio son obligatorios.';
+    return;
+  }
+
+  const btn = document.getElementById('btnWalkIn');
+  btn.disabled = true;
+  hint.className = 'walkin-hint';
+  hint.textContent = 'Agendando...';
+
+  try {
+    const body = {
+      nombre,
+      telefono,
+      email: email || undefined,
+      serviceId,
+      fecha: fecha || undefined,
+      hora: hora || undefined,
+      total: precio != null ? Number(precio) : undefined,
+      walkIn: true,
+      checkInNow,
+      sendEmail,
+    };
+    const booking = await apiPost('/api/admin/bookings', body, token);
+    hint.className = 'walkin-hint ok';
+    hint.textContent = `Listo: ${booking.folio} · ${booking.fecha} ${booking.hora} · Bahía ${booking.bay_number || booking.bayNumber} · ${booking.status}`;
+    document.getElementById('wiNombre').value = '';
+    document.getElementById('wiTelefono').value = '';
+    document.getElementById('wiEmail').value = '';
+    await loadDashboard();
+    await loadWalkInSlots();
+  } catch (err) {
+    hint.className = 'walkin-hint err';
+    const sug = err.data?.suggestedHora;
+    hint.textContent = sug ? `${err.message}` : (err.message || 'Error');
+    if (sug) {
+      const horaSel = document.getElementById('wiHora');
+      if (![...horaSel.options].some((o) => o.value === sug)) {
+        horaSel.insertAdjacentHTML('beforeend', `<option value="${sug}">${sug}</option>`);
+      }
+      horaSel.value = sug;
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function handleLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -456,5 +564,9 @@ document.getElementById('btnApplyRange').addEventListener('click', () => {
   }
   loadDashboard();
 });
+
+document.getElementById('btnWalkIn')?.addEventListener('click', submitWalkIn);
+document.getElementById('wiServicio')?.addEventListener('change', loadWalkInSlots);
+document.getElementById('wiFecha')?.addEventListener('change', loadWalkInSlots);
 
 document.addEventListener('DOMContentLoaded', loadDashboard);

@@ -5,17 +5,42 @@ const { sendOrderReceipt } = require('../services/gmail');
 
 const router = express.Router();
 
+const CATEGORY_LABELS = {
+  lavado: 'Lavado',
+  proteccion: 'Protección / Brillo',
+  interiores: 'Interiores',
+  limpieza: 'Limpieza profunda',
+  accesorios: 'Accesorios',
+  general: 'General',
+};
+
+/** Fallback image path by slug if DB column imagen is empty */
+const SLUG_IMAGES = {
+  shampoo: 'products/armor-all-ultra-shine.jpg',
+  cera: 'products/turtle-wax-super-hard-shell.jpg',
+  trapos: 'products/autozone-trapos-microfibra.jpg',
+  polish: 'products/meguiars-ultimate-polish.jpg',
+  almorol: 'products/armor-all-protectant.jpg',
+  aromatizante: 'products/little-trees-black-ice.jpg',
+  cepillos: 'products/armor-all-cepillo-detalle.jpg',
+  desengrasante: 'products/turtle-wax-bug-tar.jpg',
+  microfibra: 'products/autozone-panos-microfibra.jpg',
+};
+
 function mapProduct(i) {
+  const imagen = i.imagen || SLUG_IMAGES[i.slug] || `products/${i.slug}.jpg`;
   return {
     id: i.id,
     slug: i.slug,
     nombre: i.nombre,
     unidad: i.unidad,
     descripcion: i.descripcion || '',
+    categoria: i.categoria || 'general',
+    categoriaLabel: CATEGORY_LABELS[i.categoria] || CATEGORY_LABELS.general,
+    imagen: `/img/${imagen.replace(/^\/?img\//, '')}`,
     precio: Number(i.precio) || 0,
     packCantidad: Number(i.pack_cantidad) || 1,
     stockDisponible: Number(i.stock_teorico) || 0,
-    // how many "packs" can still be sold
     packsDisponibles: Math.floor((Number(i.stock_teorico) || 0) / (Number(i.pack_cantidad) || 1)),
   };
 }
@@ -26,15 +51,37 @@ router.get('/', async (_req, res) => {
     const supabase = getSupabase();
     const { data, error } = await supabase
       .from('inventory_items')
-      .select('id, slug, nombre, unidad, descripcion, precio, pack_cantidad, stock_teorico, vendible, activo')
+      .select('id, slug, nombre, unidad, descripcion, categoria, imagen, precio, pack_cantidad, stock_teorico, vendible, activo')
       .eq('activo', true)
       .eq('vendible', true)
+      .order('categoria')
       .order('nombre');
 
     if (error) throw error;
-    res.json((data || []).filter((i) => Number(i.precio) > 0).map(mapProduct));
+    const products = (data || []).filter((i) => Number(i.precio) > 0).map(mapProduct);
+    const categories = [...new Set(products.map((p) => p.categoria))].map((c) => ({
+      id: c,
+      label: CATEGORY_LABELS[c] || c,
+    }));
+    res.json({ products, categories });
   } catch (err) {
     console.error('GET /products:', err.message);
+    // Fallback if categoria/imagen columns missing
+    if (/categoria|imagen/i.test(err.message)) {
+      try {
+        const supabase = getSupabase();
+        const { data } = await supabase
+          .from('inventory_items')
+          .select('id, slug, nombre, unidad, descripcion, precio, pack_cantidad, stock_teorico, vendible, activo')
+          .eq('activo', true)
+          .eq('vendible', true)
+          .order('nombre');
+        const products = (data || []).filter((i) => Number(i.precio) > 0).map((i) => mapProduct({ ...i, categoria: 'general' }));
+        return res.json({ products, categories: [{ id: 'general', label: 'General' }] });
+      } catch (e2) {
+        return res.status(500).json({ error: e2.message });
+      }
+    }
     res.status(500).json({ error: err.message || 'No se pudieron cargar los productos' });
   }
 });
@@ -53,10 +100,6 @@ async function generateOrderFolio() {
   return `${prefix}-${String((count || 0) + 1).padStart(4, '0')}`;
 }
 
-/**
- * Checkout: body { items: [{ itemId, cantidad }] }
- * cantidad = number of packs/units to buy
- */
 router.post('/checkout', requireCustomer, async (req, res) => {
   try {
     const supabase = getSupabase();
@@ -155,6 +198,7 @@ router.post('/checkout', requireCustomer, async (req, res) => {
       total: Number(order.total),
       status: order.status,
       emailSent: emailResult.sent,
+      emailReason: emailResult.reason || null,
       items: lines.map((l) => ({
         nombre: l.nombre,
         cantidad: l.cantidad,

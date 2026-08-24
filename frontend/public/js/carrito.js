@@ -88,7 +88,9 @@ async function checkout() {
 
     document.getElementById('orderModalText').textContent = order.emailSent
       ? 'Revisa tu correo — te enviamos el QR para recoger tus productos.'
-      : 'Pedido registrado. Guarda tu folio para recoger en el local.';
+      : (order.emailReason
+        ? `Pedido registrado. El correo no se envió (${order.emailReason}). Guarda tu folio.`
+        : 'Pedido registrado. Guarda tu folio para recoger en el local.');
 
     document.getElementById('orderModalDetails').innerHTML = `
       <div class="modal-linea"><span>Folio</span><span>${order.folio}</span></div>

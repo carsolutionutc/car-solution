@@ -85,6 +85,27 @@
     <div id="scanResult" class="scan-result hidden"></div>
   </div>
 
+  <div class="walkin-panel">
+    <div class="walkin-header">
+      <div>
+        <h3>Cita al momento (walk-in)</h3>
+        <p>Si alguien llega sin cita: agenda ya, asigna bahía y deja la cita en <strong>confirmada</strong>.</p>
+      </div>
+    </div>
+    <div class="walkin-form" id="walkinForm">
+      <input type="text" id="wiNombre" placeholder="Nombre *" class="filter-input">
+      <input type="tel" id="wiTelefono" placeholder="Teléfono *" class="filter-input">
+      <input type="email" id="wiEmail" placeholder="Correo (opcional)" class="filter-input">
+      <select id="wiServicio" class="filter-select"><option value="">Cargando servicios...</option></select>
+      <input type="date" id="wiFecha" class="filter-input" title="Fecha">
+      <select id="wiHora" class="filter-select"><option value="">Hora automática (siguiente libre)</option></select>
+      <label class="walkin-check"><input type="checkbox" id="wiCheckIn" checked> Ya está en el local (confirmada)</label>
+      <label class="walkin-check"><input type="checkbox" id="wiSendMail"> Enviar correo</label>
+      <button class="btn-admin" id="btnWalkIn">Agendar ahora</button>
+    </div>
+    <div id="walkinHint" class="walkin-hint"></div>
+  </div>
+
   <div class="kpi-grid" id="kpiGrid"></div>
 
   <div class="charts-grid">
