@@ -211,4 +211,115 @@ router.post('/checkout', requireCustomer, async (req, res) => {
   }
 });
 
+/** Lookup order by folio (for cancel page) */
+router.get('/folio/:folio', async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const folio = String(req.params.folio || '').trim().toUpperCase();
+
+    const { data, error } = await supabase
+      .from('product_orders')
+      .select(`
+        folio, nombre, email, total, status, created_at,
+        product_order_items ( nombre, cantidad, subtotal )
+      `)
+      .eq('folio', folio)
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+    if (data.status === 'cancelada') {
+      return res.status(400).json({ error: 'Este pedido ya fue cancelado', order: data });
+    }
+    if (data.status === 'entregado') {
+      return res.status(400).json({ error: 'Este pedido ya fue entregado y no puede cancelarse', order: data });
+    }
+
+    res.json({
+      type: 'order',
+      folio: data.folio,
+      nombre: data.nombre,
+      email: data.email,
+      total: Number(data.total),
+      status: data.status,
+      createdAt: data.created_at,
+      items: (data.product_order_items || []).map((i) => ({
+        nombre: i.nombre,
+        cantidad: Number(i.cantidad),
+        subtotal: Number(i.subtotal),
+      })),
+    });
+  } catch (err) {
+    console.error('GET /products/folio:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'Error al buscar el pedido' });
+  }
+});
+
+/** Cancel product order by folio + motivo */
+router.post('/cancelar', async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const folio = String(req.body.folio || '').trim().toUpperCase();
+    const motivo = String(req.body.motivo || '').trim();
+
+    if (!folio) return res.status(400).json({ error: 'Folio requerido' });
+    if (motivo.length < 5) {
+      return res.status(400).json({ error: 'El motivo de cancelación es obligatorio (mínimo 5 caracteres)' });
+    }
+
+    const { data: existing, error: findErr } = await supabase
+      .from('product_orders')
+      .select('id, folio, status')
+      .eq('folio', folio)
+      .single();
+
+    if (findErr || !existing) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+    if (existing.status === 'cancelada') {
+      return res.status(400).json({ error: 'Este pedido ya fue cancelado' });
+    }
+    if (existing.status === 'entregado') {
+      return res.status(400).json({ error: 'Este pedido ya fue entregado y no puede cancelarse' });
+    }
+
+    const update = {
+      status: 'cancelada',
+      cancelled_at: new Date().toISOString(),
+      cancellation_reason: motivo,
+    };
+
+    let { data, error } = await supabase
+      .from('product_orders')
+      .update(update)
+      .eq('id', existing.id)
+      .select('folio, status, cancelled_at')
+      .single();
+
+    // If column cancellation_reason missing, retry without it
+    if (error && /cancellation_reason/i.test(error.message)) {
+      delete update.cancellation_reason;
+      ({ data, error } = await supabase
+        .from('product_orders')
+        .update(update)
+        .eq('id', existing.id)
+        .select('folio, status, cancelled_at')
+        .single());
+    }
+
+    if (error) throw error;
+
+    res.json({
+      message: 'Pedido cancelado correctamente',
+      folio: data.folio,
+      status: data.status,
+      type: 'order',
+    });
+  } catch (err) {
+    console.error('POST /products/cancelar:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'No se pudo cancelar el pedido' });
+  }
+});
+
 module.exports = router;

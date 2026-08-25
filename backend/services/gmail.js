@@ -236,6 +236,7 @@ function buildOrderReceiptHtml(data) {
   const itemsRows = (data.items || [])
     .map((i) => row(`${i.nombre} × ${i.cantidad}`, formatMoney(i.subtotal)))
     .join('');
+  const cancelUrl = `${getAppUrl()}/cancelar?folio=${encodeURIComponent(data.folio)}`;
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -271,9 +272,23 @@ function buildOrderReceiptHtml(data) {
               ${itemsRows}
               ${row('Total', formatMoney(data.total), true)}
             </table>
-            <p style="margin:24px 0 0;color:#6b7280;font-size:12px;line-height:1.6;">
+            <p style="margin:24px 0 16px;color:#6b7280;font-size:12px;line-height:1.6;">
               Recoge en: Calle 1 Núm 432, Deportivo Pensil, CDMX · Lun–Sáb 8:00 AM – 6:00 PM.
             </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
+              <tr>
+                <td align="center" style="padding:14px 0;">
+                  <a href="${cancelUrl}" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:700;">
+                    Cancelar mi pedido
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="font-size:12px;color:#6b7280;">
+                  Usa tu folio <strong>${data.folio}</strong> en la página de cancelación. Solo mientras el pedido esté pendiente de entrega.
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>

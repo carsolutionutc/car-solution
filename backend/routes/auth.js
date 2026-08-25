@@ -215,4 +215,115 @@ router.get('/orders', requireCustomer, async (req, res) => {
   }
 });
 
+/** Cancel own booking from account */
+router.post('/bookings/:id/cancel', requireCustomer, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const motivo = String(req.body.motivo || '').trim();
+    if (motivo.length < 5) {
+      return res.status(400).json({ error: 'El motivo de cancelación es obligatorio (mínimo 5 caracteres)' });
+    }
+
+    const email = (req.customer.email || '').toLowerCase();
+    const { data: booking, error: findErr } = await supabase
+      .from('bookings')
+      .select('id, folio, status, customer_id, email')
+      .eq('id', req.params.id)
+      .single();
+
+    if (findErr || !booking) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    const owns =
+      booking.customer_id === req.customer.customerId ||
+      (booking.email || '').toLowerCase() === email;
+    if (!owns) {
+      return res.status(403).json({ error: 'No puedes cancelar esta cita' });
+    }
+    if (booking.status === 'cancelada') {
+      return res.status(400).json({ error: 'Esta cita ya fue cancelada' });
+    }
+    if (booking.status === 'completada') {
+      return res.status(400).json({ error: 'Esta cita ya fue completada y no puede cancelarse' });
+    }
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({
+        status: 'cancelada',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: motivo,
+      })
+      .eq('id', booking.id)
+      .select('folio, status')
+      .single();
+
+    if (error) throw error;
+    res.json({ message: 'Cita cancelada', folio: data.folio, status: data.status });
+  } catch (err) {
+    console.error('POST /auth/bookings/:id/cancel:', err.message);
+    res.status(500).json({ error: err.message || 'No se pudo cancelar la cita' });
+  }
+});
+
+/** Cancel own product order from account */
+router.post('/orders/:id/cancel', requireCustomer, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const motivo = String(req.body.motivo || '').trim();
+    if (motivo.length < 5) {
+      return res.status(400).json({ error: 'El motivo de cancelación es obligatorio (mínimo 5 caracteres)' });
+    }
+
+    const { data: order, error: findErr } = await supabase
+      .from('product_orders')
+      .select('id, folio, status, customer_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (findErr || !order) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+    if (order.customer_id !== req.customer.customerId) {
+      return res.status(403).json({ error: 'No puedes cancelar este pedido' });
+    }
+    if (order.status === 'cancelada') {
+      return res.status(400).json({ error: 'Este pedido ya fue cancelado' });
+    }
+    if (order.status === 'entregado') {
+      return res.status(400).json({ error: 'Este pedido ya fue entregado y no puede cancelarse' });
+    }
+
+    const update = {
+      status: 'cancelada',
+      cancelled_at: new Date().toISOString(),
+      cancellation_reason: motivo,
+    };
+
+    let { data, error } = await supabase
+      .from('product_orders')
+      .update(update)
+      .eq('id', order.id)
+      .select('folio, status')
+      .single();
+
+    if (error && /cancellation_reason/i.test(error.message)) {
+      delete update.cancellation_reason;
+      ({ data, error } = await supabase
+        .from('product_orders')
+        .update(update)
+        .eq('id', order.id)
+        .select('folio, status')
+        .single());
+    }
+
+    if (error) throw error;
+    res.json({ message: 'Pedido cancelado', folio: data.folio, status: data.status });
+  } catch (err) {
+    console.error('POST /auth/orders/:id/cancel:', err.message);
+    res.status(500).json({ error: err.message || 'No se pudo cancelar el pedido' });
+  }
+});
+
 module.exports = router;
