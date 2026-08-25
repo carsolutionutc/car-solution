@@ -67,8 +67,12 @@ function openFichaModal(title, html, canCancel, meta) {
   document.getElementById('fichaError').classList.add('hidden');
   document.getElementById('fichaMotivo').value = '';
 
+  const status = String(meta?.status || '').toLowerCase();
+  const terminal = ['cancelada', 'completada', 'entregado'].includes(status);
+  const showCancel = Boolean(canCancel) && !terminal;
+
   const cancelBox = document.getElementById('fichaCancelBox');
-  if (canCancel) {
+  if (showCancel) {
     cancelBox.classList.remove('hidden');
     document.getElementById('btnFichaCancel').textContent =
       meta.type === 'order' ? 'Cancelar este pedido' : 'Cancelar esta cita';
@@ -115,6 +119,7 @@ async function verFichaCita(id) {
       type: 'booking',
       id: b.id,
       folio: b.folio,
+      status: b.status,
     });
   } catch (err) {
     alert(err.message || 'No se pudo abrir la ficha');
@@ -155,6 +160,7 @@ async function verFichaPedido(id) {
       type: 'order',
       id: o.id,
       folio: o.folio,
+      status: o.status,
     });
   } catch (err) {
     alert(err.message || 'No se pudo abrir la ficha');

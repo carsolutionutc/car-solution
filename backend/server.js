@@ -16,6 +16,12 @@ const { startAutoCancelJob } = require('./jobs/autoCancel');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+/** SITE_HOME_ONLY=true → solo se puede ver la página de inicio */
+function isSiteHomeOnly() {
+  const raw = String(process.env.SITE_HOME_ONLY ?? 'false').trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'yes' || raw === 'on';
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -42,10 +48,34 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     database,
     emailEnabled: gmail.enabled,
+    siteHomeOnly: isSiteHomeOnly(),
     gmail: gmail.configured ? 'configured' : { status: 'missing', fields: gmail.missing },
     googleAuth: Boolean(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_CLIENT_ID),
     timestamp: new Date().toISOString(),
   });
+});
+
+app.use((req, res, next) => {
+  if (!isSiteHomeOnly()) return next();
+
+  const p = req.path;
+
+  if (p === '/api/health') return next();
+  if (p.startsWith('/css') || p.startsWith('/js') || p.startsWith('/img')) return next();
+  if (p === '/' || p === '/index.html') return next();
+
+  // Catálogo de servicios en el home (solo lectura)
+  if (p.startsWith('/api/services') && req.method === 'GET') return next();
+
+  if (p.startsWith('/api/')) {
+    return res.status(503).json({
+      error: 'Sitio en modo solo inicio. Cambia SITE_HOME_ONLY=false para habilitar todo.',
+      siteHomeOnly: true,
+    });
+  }
+
+  // Otras pestañas → regresar al inicio
+  return res.redirect('/');
 });
 
 app.use('/api/services', servicesRouter);
@@ -95,6 +125,11 @@ app.listen(PORT, () => {
   console.log(`   Local:  http://localhost:${PORT}`);
   console.log(`   Admin:  http://localhost:${PORT}/admin`);
   console.log(`   Gestión: http://localhost:${PORT}/admin/gestion`);
-  console.log(`   Health: http://localhost:${PORT}/api/health\n`);
+  console.log(`   Health: http://localhost:${PORT}/api/health`);
+  if (isSiteHomeOnly()) {
+    console.log(`   ⚠ SITE_HOME_ONLY=true — solo página de inicio\n`);
+  } else {
+    console.log('');
+  }
   startAutoCancelJob();
 });

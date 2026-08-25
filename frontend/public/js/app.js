@@ -2,7 +2,36 @@ let SERVICIOS = [];
 let EXTRAS = [];
 let selExtras = {};
 
+async function applyHomeOnlyMode() {
+  try {
+    const h = await apiGet('/api/health');
+    if (!h.siteHomeOnly) return;
+
+    document.body.classList.add('site-home-only');
+    document.querySelectorAll('a[href="/productos"], a[href="/carrito"], a[href="/cuenta"]').forEach((a) => {
+      const li = a.closest('li');
+      if (li) li.classList.add('hidden');
+    });
+
+    const btn = document.getElementById('btnEnviar');
+    if (btn) {
+      btn.disabled = true;
+      btn.title = 'Sitio en modo solo inicio';
+      btn.textContent = 'Agendar no disponible por ahora';
+    }
+
+    const hint = document.getElementById('slotsHint');
+    if (hint) {
+      hint.textContent = 'Vista previa: solo página de inicio activa.';
+    }
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 async function initApp() {
+  await applyHomeOnlyMode();
+
   try {
     const data = await apiGet('/api/services');
     SERVICIOS = data.services;
