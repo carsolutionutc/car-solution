@@ -180,6 +180,68 @@ router.get('/bookings', requireCustomer, async (req, res) => {
   }
 });
 
+/** Detalle de una cita propia (ficha) */
+router.get('/bookings/:id', requireCustomer, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const email = (req.customer.email || '').toLowerCase();
+
+    const { data: b, error } = await supabase
+      .from('bookings')
+      .select(`
+        id, folio, nombre, email, telefono, fecha, hora, total, status,
+        vehiculo_tipo, tapiceria, bay_number, duration_minutes,
+        created_at, cancelled_at, cancellation_reason, checked_in_at, completed_at,
+        customer_id,
+        services ( nombre ),
+        booking_extras ( precio, extras ( nombre ) )
+      `)
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !b) {
+      return res.status(404).json({ error: 'Cita no encontrada' });
+    }
+
+    const owns =
+      b.customer_id === req.customer.customerId ||
+      (b.email || '').toLowerCase() === email;
+    if (!owns) {
+      return res.status(403).json({ error: 'No puedes ver esta cita' });
+    }
+
+    res.json({
+      id: b.id,
+      folio: b.folio,
+      nombre: b.nombre,
+      email: b.email,
+      telefono: b.telefono,
+      fecha: b.fecha,
+      hora: String(b.hora).slice(0, 5),
+      total: Number(b.total),
+      status: b.status,
+      vehiculoTipo: b.vehiculo_tipo,
+      tapiceria: b.tapiceria,
+      bayNumber: b.bay_number,
+      durationMinutes: b.duration_minutes,
+      servicio: b.services?.nombre,
+      extras: (b.booking_extras || []).map((e) => ({
+        nombre: e.extras?.nombre,
+        precio: Number(e.precio),
+      })),
+      createdAt: b.created_at,
+      cancelledAt: b.cancelled_at,
+      cancellationReason: b.cancellation_reason,
+      checkedInAt: b.checked_in_at,
+      completedAt: b.completed_at,
+      canCancel: b.status === 'pendiente' || b.status === 'confirmada',
+    });
+  } catch (err) {
+    console.error('GET /auth/bookings/:id:', err.message);
+    res.status(500).json({ error: err.message || 'No se pudo cargar la cita' });
+  }
+});
+
 router.get('/orders', requireCustomer, async (req, res) => {
   try {
     const supabase = getSupabase();
@@ -212,6 +274,52 @@ router.get('/orders', requireCustomer, async (req, res) => {
   } catch (err) {
     console.error('GET /auth/orders:', err.message);
     res.status(500).json({ error: err.message || 'No se pudieron cargar tus pedidos' });
+  }
+});
+
+/** Detalle de un pedido propio (ficha) */
+router.get('/orders/:id', requireCustomer, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const { data: o, error } = await supabase
+      .from('product_orders')
+      .select(`
+        id, folio, nombre, email, total, status, created_at, picked_up_at,
+        cancelled_at, cancellation_reason, customer_id,
+        product_order_items ( nombre, cantidad, precio_unitario, subtotal )
+      `)
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !o) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+    if (o.customer_id !== req.customer.customerId) {
+      return res.status(403).json({ error: 'No puedes ver este pedido' });
+    }
+
+    res.json({
+      id: o.id,
+      folio: o.folio,
+      nombre: o.nombre,
+      email: o.email,
+      total: Number(o.total),
+      status: o.status,
+      createdAt: o.created_at,
+      pickedUpAt: o.picked_up_at,
+      cancelledAt: o.cancelled_at,
+      cancellationReason: o.cancellation_reason,
+      items: (o.product_order_items || []).map((i) => ({
+        nombre: i.nombre,
+        cantidad: Number(i.cantidad),
+        precioUnitario: Number(i.precio_unitario),
+        subtotal: Number(i.subtotal),
+      })),
+      canCancel: o.status === 'pendiente',
+    });
+  } catch (err) {
+    console.error('GET /auth/orders/:id:', err.message);
+    res.status(500).json({ error: err.message || 'No se pudo cargar el pedido' });
   }
 });
 

@@ -584,6 +584,112 @@
 .cuenta-row:last-child { border-bottom: none; }
 .cuenta-row small { display: block; color: var(--gris); margin-top: 0.15rem; }
 .cuenta-amt { font-family: 'Oswald', sans-serif; font-size: 1.05rem; color: var(--azul); }
+
+.cuenta-row-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.btn-cuenta-ficha {
+  border: 1px solid var(--azul);
+  background: transparent;
+  color: var(--azul);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn-cuenta-ficha:hover {
+  background: var(--azul);
+  color: #fff;
+}
+
+.btn-cuenta-cancel {
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn-cuenta-cancel:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+#fichaModal {
+  z-index: 1200;
+}
+
+.modal-ficha {
+  text-align: left;
+  max-width: 520px;
+  width: 92%;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.ficha-section-label {
+  margin: 0.85rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--azul);
+}
+
+.ficha-cancel-box {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gris2);
+}
+
+.ficha-cancel-box label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.ficha-cancel-box textarea {
+  width: 100%;
+  border: 1.5px solid var(--gris2);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-bottom: 0.75rem;
+}
+
+.btn-ficha-cancel {
+  width: 100%;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.ficha-error {
+  margin-top: 0.75rem;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
 .auth-hint { color: var(--gris); font-size: 0.85rem; }
 
 .profile-mini {

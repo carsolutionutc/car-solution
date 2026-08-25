@@ -1,13 +1,23 @@
 const { google } = require('googleapis');
 const QRCode = require('qrcode');
 
+/** EMAIL_ENABLED=true|false — default true if unset */
+function isEmailEnabled() {
+  const raw = String(process.env.EMAIL_ENABLED ?? 'true').trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'yes' || raw === 'on';
+}
+
 function getGmailConfigStatus() {
   const missing = [];
   if (!process.env.GMAIL_CLIENT_ID) missing.push('GMAIL_CLIENT_ID');
   if (!process.env.GMAIL_CLIENT_SECRET) missing.push('GMAIL_CLIENT_SECRET');
   if (!process.env.GMAIL_REFRESH_TOKEN) missing.push('GMAIL_REFRESH_TOKEN');
   if (!process.env.GMAIL_USER) missing.push('GMAIL_USER');
-  return { configured: missing.length === 0, missing };
+  return {
+    configured: missing.length === 0,
+    missing,
+    enabled: isEmailEnabled(),
+  };
 }
 
 function isGmailConfigured() {
@@ -192,6 +202,10 @@ async function sendRawEmail(gmail, { to, subject, html, qrPngBuffer }) {
 
 async function sendBookingReceipt(data) {
   const status = getGmailConfigStatus();
+  if (!status.enabled) {
+    console.warn('EMAIL_ENABLED=false — no se envían correos de cita');
+    return { sent: false, reason: 'email_disabled' };
+  }
   if (!status.configured) {
     console.warn(`Gmail API no configurado — faltan: ${status.missing.join(', ')}`);
     return { sent: false, reason: 'not_configured', missing: status.missing };
@@ -305,6 +319,10 @@ function buildOrderReceiptHtml(data) {
 
 async function sendOrderReceipt(data) {
   const status = getGmailConfigStatus();
+  if (!status.enabled) {
+    console.warn('EMAIL_ENABLED=false — no se envían correos de pedido');
+    return { sent: false, reason: 'email_disabled' };
+  }
   if (!status.configured) {
     console.warn(`Gmail API no configurado — faltan: ${status.missing.join(', ')}`);
     return { sent: false, reason: 'not_configured', missing: status.missing };
@@ -348,6 +366,7 @@ module.exports = {
   sendBookingReceipt,
   sendOrderReceipt,
   isGmailConfigured,
+  isEmailEnabled,
   getGmailConfigStatus,
   getOAuthClient,
 };

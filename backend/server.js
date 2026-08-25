@@ -41,6 +41,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     database,
+    emailEnabled: gmail.enabled,
     gmail: gmail.configured ? 'configured' : { status: 'missing', fields: gmail.missing },
     googleAuth: Boolean(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_CLIENT_ID),
     timestamp: new Date().toISOString(),
