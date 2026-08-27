@@ -10,6 +10,8 @@ const {
   filterPastSlotsToday,
   isSunday,
   isPastDate,
+  BAY_COUNT,
+  MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
   TOLERANCE_MINUTES,
   TURNOVER_BUFFER_MINUTES,
 } = require('../utils/scheduling');
@@ -75,8 +77,114 @@ function validateBooking(body) {
   return null;
 }
 
-/** Available slots for a date + service (respects 4 bays + duration + buffer) */
-router.get('/slots', async (req, res) => {
+function startOfTodayMexicoIso() {
+  const ymd = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  return `${ymd}T00:00:00.000-06:00`;
+}
+
+async function countAccountBookings(supabase, { customerId, email, sinceIso, fecha }) {
+  const ids = new Set();
+  const lookups = [];
+  if (customerId) lookups.push({ col: 'customer_id', val: customerId, mode: 'eq' });
+  if (email) lookups.push({ col: 'email', val: String(email).trim(), mode: 'ilike' });
+  if (!lookups.length) return 0;
+
+  for (const { col, val, mode } of lookups) {
+    let q = supabase.from('bookings').select('id').neq('status', 'cancelada');
+    q = mode === 'ilike' ? q.ilike(col, val) : q.eq(col, val);
+    if (sinceIso) q = q.gte('created_at', sinceIso);
+    if (fecha) q = q.eq('fecha', fecha);
+    const { data, error } = await q;
+    if (error) throw error;
+    (data || []).forEach((row) => ids.add(row.id));
+  }
+
+  return ids.size;
+}
+
+const DAILY_LIMIT_MESSAGE =
+  'Ya alcanzaste el límite de 2 citas por día en tu cuenta. No puedes agendar otra cita hasta el día siguiente.';
+
+async function assertAccountDailyLimit(supabase, { customerId, email, fecha }) {
+  const identity = { customerId: customerId || null, email: email || null };
+  if (!identity.customerId && !identity.email) return;
+
+  const createdToday = await countAccountBookings(supabase, {
+    ...identity,
+    sinceIso: startOfTodayMexicoIso(),
+  });
+  if (createdToday >= MAX_BOOKINGS_PER_ACCOUNT_PER_DAY) {
+    const err = new Error(DAILY_LIMIT_MESSAGE);
+    err.status = 409;
+    err.code = 'DAILY_LIMIT';
+    err.bookedToday = createdToday;
+    throw err;
+  }
+
+  if (fecha) {
+    const sameDay = await countAccountBookings(supabase, { ...identity, fecha });
+    if (sameDay >= MAX_BOOKINGS_PER_ACCOUNT_PER_DAY) {
+      const err = new Error(
+        'Ya tienes 2 citas para esa fecha. Una cuenta puede agendar máximo 2 citas el mismo día. Elige otro día o espera al día siguiente.'
+      );
+      err.status = 409;
+      err.code = 'DAILY_LIMIT';
+      err.bookedOnFecha = sameDay;
+      throw err;
+    }
+  }
+}
+
+function slotsMeta(extra = {}) {
+  return {
+    bayCount: BAY_COUNT,
+    maxBookingsPerDay: MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
+    toleranceMinutes: TOLERANCE_MINUTES,
+    bufferMinutes: TURNOVER_BUFFER_MINUTES,
+    ...extra,
+  };
+}
+
+router.get('/quota', optionalCustomer, async (req, res) => {
+  try {
+    const supabase = getSupabase();
+    const email = (req.query.email || req.customer?.email || '').trim();
+    const customerId = req.customer?.customerId || null;
+    if (!customerId && !email) {
+      return res.json({
+        maxPerDay: MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
+        bookedToday: 0,
+        remaining: MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
+        limited: false,
+      });
+    }
+
+    const bookedToday = await countAccountBookings(supabase, {
+      customerId,
+      email,
+      sinceIso: startOfTodayMexicoIso(),
+    });
+    const remaining = Math.max(0, MAX_BOOKINGS_PER_ACCOUNT_PER_DAY - bookedToday);
+    res.json({
+      maxPerDay: MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
+      bookedToday,
+      remaining,
+      limited: remaining <= 0,
+      message: remaining <= 0 ? DAILY_LIMIT_MESSAGE : null,
+    });
+  } catch (err) {
+    console.error('GET quota:', err.message);
+    res.status(err.status || 500).json({ error: err.message || 'No se pudo consultar el límite de citas' });
+  }
+});
+
+/** Available slots for a date + service (respects 1 bay + duration + buffer) */
+router.get('/slots', optionalCustomer, async (req, res) => {
   try {
     const { fecha, serviceId } = req.query;
     if (!fecha || !serviceId) {
@@ -85,7 +193,7 @@ router.get('/slots', async (req, res) => {
     if (isSunday(fecha)) {
       return res.json({
         slots: [],
-        meta: { bayCount: 4, toleranceMinutes: TOLERANCE_MINUTES, bufferMinutes: TURNOVER_BUFFER_MINUTES, reason: 'domingo' },
+        meta: slotsMeta({ reason: 'domingo' }),
       });
     }
 
@@ -108,16 +216,31 @@ router.get('/slots', async (req, res) => {
       ? (slots.find((h) => h >= String(preferred).slice(0, 5)) || slots[0] || null)
       : (slots[0] || null);
 
+    const email = (req.query.email || req.customer?.email || '').trim();
+    const customerId = req.customer?.customerId || null;
+    let quota = null;
+    if (customerId || email) {
+      const bookedToday = await countAccountBookings(supabase, {
+        customerId,
+        email,
+        sinceIso: startOfTodayMexicoIso(),
+      });
+      const remaining = Math.max(0, MAX_BOOKINGS_PER_ACCOUNT_PER_DAY - bookedToday);
+      quota = {
+        maxPerDay: MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
+        bookedToday,
+        remaining,
+        limited: remaining <= 0,
+        message: remaining <= 0 ? DAILY_LIMIT_MESSAGE : null,
+      };
+    }
+
     res.json({
       slots,
       suggestedHora,
       durationMinutes: duration,
-      meta: {
-        bayCount: 4,
-        toleranceMinutes: TOLERANCE_MINUTES,
-        bufferMinutes: TURNOVER_BUFFER_MINUTES,
-        service: service.nombre,
-      },
+      quota,
+      meta: slotsMeta({ service: service.nombre }),
     });
   } catch (err) {
     console.error('GET slots:', err.message);
@@ -243,6 +366,22 @@ router.post('/', optionalCustomer, async (req, res) => {
 
     const duration = getServiceDuration(service);
     const existing = await loadDayBookings(fecha);
+    try {
+      await assertAccountDailyLimit(supabase, {
+        customerId: req.customer?.customerId || null,
+        email,
+        fecha,
+      });
+    } catch (limitErr) {
+      if (limitErr.code === 'DAILY_LIMIT') {
+        return res.status(409).json({
+          error: limitErr.message,
+          code: 'DAILY_LIMIT',
+        });
+      }
+      throw limitErr;
+    }
+
     const bay = findAvailableBay(existing, hora, duration);
 
     if (!bay) {
@@ -250,8 +389,8 @@ router.post('/', optionalCustomer, async (req, res) => {
       const suggestedHora = available.find((h) => h > String(hora).slice(0, 5)) || available[0] || null;
       return res.status(409).json({
         error: suggestedHora
-          ? `Ese horario no está disponible (espacios ocupados). El siguiente libre es ${suggestedHora}.`
-          : 'No hay espacios de lavado disponibles en ese horario para la duración del servicio.',
+          ? `Ese horario no está disponible: la bahía está ocupada a esa hora o durante el servicio. El siguiente libre es ${suggestedHora}.`
+          : 'No hay horario disponible: solo hay una bahía y está ocupada durante ese servicio.',
         suggestedHora,
         availableSlots: available,
       });

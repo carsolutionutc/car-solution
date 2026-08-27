@@ -63,6 +63,7 @@
       </div>
     </div>
     <div class="admin-actions">
+      <button class="btn-admin iris-launch" id="btnIrisChat" type="button">Chatear con Iris</button>
       <a class="btn-admin outline" href="/admin/gestion" id="btnGestion">Gestión</a>
       <button class="btn-admin outline" id="btnRefresh">Actualizar</button>
       <button class="btn-admin" id="btnLogout2">Cerrar sesión</button>
@@ -164,6 +165,28 @@
     <button class="btn-cerrar" id="btnCloseModal">Cerrar</button>
   </div>
 </div>
+
+<aside id="irisPanel" class="iris-panel" aria-hidden="true">
+  <header class="iris-head">
+    <div class="iris-avatar" aria-hidden="true">I</div>
+    <div class="iris-head-copy">
+      <h2>Iris</h2>
+      <p>Secretaria operativa · arcoíris del lavado</p>
+    </div>
+    <button type="button" class="iris-close" id="btnCloseIris" aria-label="Cerrar chat">✕</button>
+  </header>
+  <div id="irisMessages" class="iris-messages"></div>
+  <div class="iris-suggest" id="irisSuggest">
+    <button type="button" data-iris-q="¿Cómo vamos hoy? Resumen de ingresos, citas y cancelaciones.">Hoy</button>
+    <button type="button" data-iris-q="Resumen de esta semana: cuánto se ganó, cuántas citas y canceladas.">Esta semana</button>
+    <button type="button" data-iris-q="¿Cuánto se gastó en utensilios e insumos en este periodo y cuáles se usaron más?">Utensilios</button>
+    <button type="button" data-iris-q="¿Hay algo que deba cuidar hoy? Agenda, inventario bajo o cancelaciones.">Alertas</button>
+  </div>
+  <form id="irisForm" class="iris-form">
+    <textarea id="irisInput" rows="2" placeholder="Pregúntame por el día, la semana o los insumos…"></textarea>
+    <button type="submit" id="irisSend">Enviar</button>
+  </form>
+</aside>
 
 <script src="/js/api.js"></script>
 <script src="/js/admin.js"></script>

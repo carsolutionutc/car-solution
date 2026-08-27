@@ -8,7 +8,7 @@ async function applyHomeOnlyMode() {
     if (!h.siteHomeOnly) return;
 
     document.body.classList.add('site-home-only');
-    document.querySelectorAll('a[href="/productos"], a[href="/carrito"], a[href="/cuenta"]').forEach((a) => {
+    document.querySelectorAll('a[href="/productos"], a[href="/cuenta"]').forEach((a) => {
       const li = a.closest('li');
       if (li) li.classList.add('hidden');
     });
@@ -50,6 +50,7 @@ async function initApp() {
   const fechaEl = document.getElementById('fecha');
   fechaEl.setAttribute('min', hoy);
   fechaEl.addEventListener('change', loadSlots);
+  document.getElementById('correo').addEventListener('change', loadSlots);
   document.getElementById('servicio').addEventListener('change', () => {
     recalc();
     loadSlots();
@@ -65,6 +66,17 @@ async function initApp() {
       if (mail && !mail.value) mail.value = c.email || '';
     }
   }
+
+  window.addEventListener('customer-login', () => {
+    const c = typeof getCustomer === 'function' ? getCustomer() : null;
+    if (c) {
+      const nom = document.getElementById('nombre');
+      const mail = document.getElementById('correo');
+      if (nom && !nom.value) nom.value = c.nombre || '';
+      if (mail) mail.value = c.email || mail.value;
+    }
+    loadSlots();
+  });
 }
 
 function populateServiceSelect() {
@@ -186,10 +198,24 @@ async function loadSlots() {
   hint.textContent = '';
 
   try {
-    const data = await apiGet(`/api/bookings/slots?fecha=${encodeURIComponent(fecha)}&serviceId=${encodeURIComponent(serviceId)}`);
+    const customer = typeof getCustomer === 'function' ? getCustomer() : null;
+    const token = typeof getCustomerToken === 'function' ? getCustomerToken() : null;
+    const correo = document.getElementById('correo')?.value.trim();
+    const email = customer?.email || correo;
+    let url = `/api/bookings/slots?fecha=${encodeURIComponent(fecha)}&serviceId=${encodeURIComponent(serviceId)}`;
+    if (email) url += `&email=${encodeURIComponent(email)}`;
+    const data = await apiGet(url, token);
+
+    if (data.quota?.limited) {
+      hint.textContent = data.quota.message
+        || 'Ya alcanzaste el límite de 2 citas por día en tu cuenta. No puedes agendar otra cita hasta el día siguiente.';
+    }
+
     if (!data.slots?.length) {
       horaSel.innerHTML = '<option value="">Sin horarios disponibles</option>';
-      hint.textContent = 'No hay bahías libres para la duración de este servicio ese día.';
+      if (!data.quota?.limited) {
+        hint.textContent = 'La bahía está ocupada durante el tiempo de ese servicio ese día.';
+      }
       return;
     }
 
@@ -203,9 +229,17 @@ async function loadSlots() {
       horaSel.value = data.suggestedHora;
     }
 
+    const bays = data.meta?.bayCount || 1;
+    const bayLabel = bays === 1 ? '1 bahía' : `${bays} bahías`;
     hint.textContent = data.suggestedHora
-      ? `Siguiente horario libre: ${data.suggestedHora}. Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min · tolerancia ${data.meta?.toleranceMinutes || 15} min`
-      : `Duración ~${data.durationMinutes} min · 4 espacios · colchón ${data.meta?.bufferMinutes || 15} min entre citas · tolerancia llegada ${data.meta?.toleranceMinutes || 15} min`;
+      ? `Siguiente horario libre: ${data.suggestedHora}. Duración ~${data.durationMinutes} min · ${bayLabel} · colchón ${data.meta?.bufferMinutes || 15} min · tolerancia ${data.meta?.toleranceMinutes || 15} min`
+      : `Duración ~${data.durationMinutes} min · ${bayLabel} · colchón ${data.meta?.bufferMinutes || 15} min entre citas · tolerancia llegada ${data.meta?.toleranceMinutes || 15} min`;
+
+    if (data.quota?.limited) {
+      hint.textContent = data.quota.message || 'Ya alcanzaste el límite de 2 citas por día. No puedes agendar otra hasta el día siguiente.';
+    } else if (data.quota && data.quota.remaining < 2) {
+      hint.textContent += ` · Te queda ${data.quota.remaining} cita por hoy.`;
+    }
   } catch (err) {
     horaSel.innerHTML = '<option value="">Error al cargar horarios</option>';
     hint.textContent = err.message || 'Error';
@@ -290,6 +324,12 @@ async function enviarCita() {
     document.getElementById('modalOk').classList.add('show');
     loadSlots();
   } catch (err) {
+    if (err.data?.code === 'DAILY_LIMIT') {
+      document.getElementById('modalLimitText').textContent = err.message
+        || 'Ya alcanzaste el límite de 2 citas por día en tu cuenta. No puedes agendar otra cita hasta el día siguiente.';
+      document.getElementById('modalLimit').classList.add('show');
+      return;
+    }
     const suggested = err.data?.suggestedHora;
     if (suggested) {
       const useNext = confirm(`${err.message}\n\n¿Usar el siguiente horario libre (${suggested})?`);

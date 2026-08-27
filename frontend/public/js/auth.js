@@ -35,6 +35,7 @@ function getCart() {
 function saveCart(items) {
   localStorage.setItem(CART_KEY, JSON.stringify(items));
   updateCartBadge();
+  window.dispatchEvent(new Event('cart-updated'));
 }
 
 function cartCount() {

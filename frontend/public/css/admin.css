@@ -644,3 +644,206 @@
 }
 
 #addStockModal.show { display: flex; }
+
+/* ── Iris chat ── */
+.btn-admin.iris-launch {
+  background: linear-gradient(135deg, #0d47a1, #42a5f5);
+  border: none;
+  color: #fff;
+}
+
+body.iris-open .admin-dashboard {
+  padding-right: min(440px, 38vw);
+}
+
+.iris-panel {
+  position: fixed;
+  top: 62px;
+  right: 0;
+  bottom: 0;
+  width: min(400px, 100vw);
+  background: #fff;
+  border-left: 1px solid rgba(13,71,161,0.12);
+  box-shadow: -12px 0 32px rgba(13,71,161,0.12);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(110%);
+  transition: transform 0.28s ease;
+}
+
+.iris-panel.open {
+  transform: translateX(0);
+}
+
+.iris-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.9rem;
+  background: linear-gradient(135deg, #0d47a1, #1976d2 60%, #42a5f5);
+  color: #fff;
+}
+
+.iris-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.iris-head-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.iris-head h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.25rem;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.iris-head p {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.82);
+}
+
+.iris-close {
+  border: none;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.iris-close:hover { background: rgba(255,255,255,0.28); }
+
+.iris-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: #f4f7fb;
+}
+
+.iris-bubble {
+  max-width: 92%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.iris-bubble.bot {
+  background: #fff;
+  border: 1px solid rgba(13,71,161,0.08);
+  color: var(--texto);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.iris-bubble.user {
+  background: var(--azul);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.iris-bubble.meta {
+  font-size: 0.75rem;
+  color: var(--gris);
+  align-self: center;
+  background: transparent;
+  padding: 0;
+}
+
+.iris-bubble.typing {
+  color: var(--gris);
+  font-style: italic;
+}
+
+.iris-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem 0.15rem;
+  background: #fff;
+  border-top: 1px solid var(--gris2);
+}
+
+.iris-suggest button {
+  border: 1px solid rgba(13,71,161,0.2);
+  background: var(--azulclaro);
+  color: var(--azul);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.iris-suggest button:hover {
+  background: var(--azul);
+  color: #fff;
+}
+
+.iris-form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 0.85rem 1rem;
+  background: #fff;
+  border-top: 1px solid var(--gris2);
+}
+
+.iris-form textarea {
+  flex: 1;
+  border: 1.5px solid var(--gris2);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  resize: none;
+  min-height: 44px;
+}
+
+.iris-form textarea:focus {
+  outline: none;
+  border-color: #90caf9;
+}
+
+.iris-form button {
+  border: none;
+  background: var(--azul);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 0 0.95rem;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.iris-form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 800px) {
+  body.iris-open .admin-dashboard { padding-right: 2rem; }
+}

@@ -21,12 +21,6 @@
       <a href="/productos" class="nav-chip nav-chip-active">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/></svg>
         <span class="nav-chip-label">Productos</span>
-      </a>
-    </li>
-    <li>
-      <a href="/carrito" class="nav-chip nav-chip-cart">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.4 11h9.2L20 8H7"/></svg>
-        <span class="nav-chip-label">Carrito</span>
         <span class="cart-badge hidden" data-cart-count></span>
       </a>
     </li>
@@ -39,12 +33,8 @@
     <div class="page-hero-copy">
       <span class="page-kicker">Tienda oficial</span>
       <h1>Insumos con marca<br><span>para tu auto</span></h1>
-      <p>Los mismos productos del lavado profesional. Elige, agrega al carrito y recoge en el local con tu QR.</p>
+      <p>Los mismos productos del lavado profesional. Elige a la izquierda, revisa tu carrito a la derecha y recoge en el local con tu QR.</p>
       <div class="page-hero-actions">
-        <a href="/carrito" class="store-btn store-btn-primary">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.4 11h9.2L20 8H7"/></svg>
-          Ir al carrito
-        </a>
         <a href="/#cotizar" class="store-btn store-btn-ghost">Agendar servicio</a>
       </div>
     </div>
@@ -61,16 +51,72 @@
   </div>
 </section>
 
-<section class="store-catalog">
-  <div class="section-head">
-    <h2>Catálogo</h2>
-    <p>Disponibilidad en tiempo real según inventario del negocio.</p>
+<section class="store-shop">
+  <div class="store-shop-products">
+    <div class="section-head">
+      <h2>Catálogo</h2>
+      <p>Disponibilidad en tiempo real según inventario del negocio.</p>
+    </div>
+    <div id="categoryFilters" class="product-filters" aria-label="Categorías"></div>
+    <div id="productsGrid" class="products-grid">
+      <p style="color:var(--gris);">Cargando productos...</p>
+    </div>
   </div>
-  <div id="categoryFilters" class="product-filters" aria-label="Categorías"></div>
-  <div id="productsGrid" class="products-grid">
-    <p style="color:var(--gris);">Cargando productos...</p>
-  </div>
+
+  <aside class="store-shop-cart" id="carrito">
+    <div class="cart-panel cart-summary">
+      <div class="summary-head">
+        <h2>Carrito</h2>
+        <span class="summary-pill">Pago al recoger</span>
+      </div>
+      <div id="cartItems" class="cart-page-items shop-cart-items"></div>
+      <div class="cart-total">
+        <span>Total estimado</span>
+        <strong id="cartTotal">$0</strong>
+      </div>
+      <p id="cartHint" class="hint-text"></p>
+      <div id="checkoutGoogle" class="checkout-google"></div>
+      <button class="store-btn store-btn-primary store-btn-block" id="btnCheckout" disabled>Realizar compra</button>
+      <button class="store-btn store-btn-quiet store-btn-block" id="btnClearCart" type="button">Vaciar carrito</button>
+    </div>
+  </aside>
 </section>
+
+<footer>
+  <strong>Car Solution</strong> — Servicios profesionales de detallado automotriz<br>
+  Horario: Lunes a Sábado · 8:00 AM – 6:00 PM
+  <div class="footer-contacto">
+    <span class="footer-contacto-titulo">Contacto</span>
+    <a href="mailto:carsolutionutc@gmail.com">carsolutionutc@gmail.com</a>
+    <span class="footer-sep">·</span>
+    <a href="tel:+525533519512">55 3351 9512</a>
+    <span class="footer-sep">·</span>
+    <a href="https://www.google.com/maps/search/?api=1&query=Calle+1+N%C3%BAm+432,+Deportivo+Pensil,+Miguel+Hidalgo,+11470+Ciudad+de+M%C3%A9xico,+CDMX" target="_blank" rel="noopener">
+      Calle 1 Núm 432, Deportivo Pensil, Miguel Hidalgo, 11470 Ciudad de México, CDMX
+    </a>
+  </div>
+  <div class="footer-social">
+    <span class="footer-contacto-titulo">Redes</span>
+    <a href="https://wa.me/525533519512" target="_blank" rel="noopener" aria-label="WhatsApp">WhatsApp</a>
+    <span class="footer-sep">·</span>
+    <a href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+    <span class="footer-sep">·</span>
+    <a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a>
+  </div>
+  <div class="footer-legal">
+    <a href="/terminos">Términos y condiciones</a>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box">
+    <div class="modal-icono">✓</div>
+    <h3>¡Pedido registrado!</h3>
+    <p id="orderModalText">Revisa tu correo — te enviamos el QR para recoger.</p>
+    <div class="modal-detalles" id="orderModalDetails"></div>
+    <button class="btn-cerrar" id="btnCloseOrderModal">Listo</button>
+  </div>
+</div>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>

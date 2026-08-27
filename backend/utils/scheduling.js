@@ -1,6 +1,7 @@
-/** Scheduling helpers: 4 bays, fixed 15-min slots, durations + turnover buffer */
+/** Scheduling helpers: 1 bay, fixed 15-min slots, durations + turnover buffer */
 
-const BAY_COUNT = 4;
+const BAY_COUNT = 1;
+const MAX_BOOKINGS_PER_ACCOUNT_PER_DAY = 2;
 const TOLERANCE_MINUTES = 15;
 const TURNOVER_BUFFER_MINUTES = 15;
 const OPEN_MINUTES = 8 * 60;   // 08:00
@@ -63,7 +64,8 @@ function generateDaySlots() {
 }
 
 /**
- * Assign a free bay (1..4) for a proposed booking, or null if none.
+ * Assign a free bay for a proposed booking, or null if none.
+ * With a single bay, any overlap in service time (plus turnover buffer) is a conflict.
  * existing: [{ hora, duration_minutes, bay_number, status }]
  */
 function findAvailableBay(existing, startHora, durationMins) {
@@ -78,18 +80,6 @@ function findAvailableBay(existing, startHora, durationMins) {
     (b) => b.status !== 'cancelada' && b.status !== 'completada'
   );
 
-  for (let bay = 1; bay <= BAY_COUNT; bay++) {
-    const bayBookings = active.filter((b) => Number(b.bay_number) === bay);
-    const conflict = bayBookings.some((b) => {
-      const bStart = parseTimeToMinutes(b.hora);
-      const bDur = Number(b.duration_minutes) || getServiceDuration(b);
-      const bEnd = occupancyEnd(bStart, bDur);
-      return intervalsOverlap(start, end, bStart, bEnd);
-    });
-    if (!conflict) return bay;
-  }
-
-  // Fallback: if bay_number missing on old rows, count overlapping occupancy
   const overlapping = active.filter((b) => {
     const bStart = parseTimeToMinutes(b.hora);
     const bDur = Number(b.duration_minutes) || getServiceDuration(b);
@@ -97,15 +87,18 @@ function findAvailableBay(existing, startHora, durationMins) {
     return intervalsOverlap(start, end, bStart, bEnd);
   });
 
-  if (overlapping.length < BAY_COUNT) {
-    const used = new Set(overlapping.map((b) => Number(b.bay_number)).filter(Boolean));
-    for (let bay = 1; bay <= BAY_COUNT; bay++) {
-      if (!used.has(bay)) return bay;
-    }
-    return overlapping.length + 1;
+  if (overlapping.length >= BAY_COUNT) return null;
+
+  const used = new Set(
+    overlapping
+      .map((b) => Number(b.bay_number))
+      .filter((n) => n >= 1 && n <= BAY_COUNT)
+  );
+  for (let bay = 1; bay <= BAY_COUNT; bay++) {
+    if (!used.has(bay)) return bay;
   }
 
-  return null;
+  return overlapping.length + 1;
 }
 
 function getAvailableSlots(existing, durationMins) {
@@ -158,6 +151,7 @@ function checkInDeadline(fecha, hora) {
 
 module.exports = {
   BAY_COUNT,
+  MAX_BOOKINGS_PER_ACCOUNT_PER_DAY,
   TOLERANCE_MINUTES,
   TURNOVER_BUFFER_MINUTES,
   OPEN_MINUTES,

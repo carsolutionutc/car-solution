@@ -10,7 +10,9 @@ const adminRouter = require('./routes/admin');
 const inventoryRouter = require('./routes/inventory');
 const authRouter = require('./routes/auth');
 const productsRouter = require('./routes/products');
+const assistantRouter = require('./routes/assistant');
 const { getGmailConfigStatus } = require('./services/gmail');
+const { getLlmConfig, ASSISTANT_NAME } = require('./services/assistant');
 const { startAutoCancelJob } = require('./jobs/autoCancel');
 
 const app = express();
@@ -51,6 +53,10 @@ app.get('/api/health', (_req, res) => {
     siteHomeOnly: isSiteHomeOnly(),
     gmail: gmail.configured ? 'configured' : { status: 'missing', fields: gmail.missing },
     googleAuth: Boolean(process.env.GOOGLE_CLIENT_ID || process.env.GMAIL_CLIENT_ID),
+    assistant: {
+      name: ASSISTANT_NAME,
+      enabled: Boolean(getLlmConfig()),
+    },
     timestamp: new Date().toISOString(),
   });
 });
@@ -80,6 +86,7 @@ app.use((req, res, next) => {
 
 app.use('/api/services', servicesRouter);
 app.use('/api/bookings', bookingsRouter);
+app.use('/api/admin/assistant', assistantRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/inventory', inventoryRouter);
 app.use('/api/auth', authRouter);
@@ -101,7 +108,11 @@ app.get('/productos', (_req, res) => {
 });
 
 app.get('/carrito', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'carrito.html'));
+  res.redirect(301, '/productos');
+});
+
+app.get('/terminos', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'terminos.html'));
 });
 
 app.get('/cuenta', (_req, res) => {

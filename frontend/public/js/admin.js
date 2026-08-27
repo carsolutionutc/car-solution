@@ -24,6 +24,7 @@ function showLogin() {
   document.getElementById('dashboardView').classList.add('hidden');
   document.getElementById('btnLogout').classList.add('hidden');
   document.getElementById('navGestion')?.classList.add('hidden');
+  closeIris();
 }
 
 function showDashboard() {
@@ -322,6 +323,7 @@ async function loadDashboard() {
     renderCharts(analytics);
     renderBookings(bookings);
     showDashboard();
+    await refreshIrisStatus();
 
     const wiFecha = document.getElementById('wiFecha');
     if (wiFecha && !wiFecha.value) {
@@ -569,4 +571,135 @@ document.getElementById('btnWalkIn')?.addEventListener('click', submitWalkIn);
 document.getElementById('wiServicio')?.addEventListener('change', loadWalkInSlots);
 document.getElementById('wiFecha')?.addEventListener('change', loadWalkInSlots);
 
-document.addEventListener('DOMContentLoaded', loadDashboard);
+const IRIS_WELCOME = 'Hola, soy Iris, tu secretaria de Car Solution. Pregúntame por ingresos, citas, cancelaciones o utensilios.';
+
+let irisHistory = [];
+let irisBusy = false;
+let irisEnabled = false;
+let irisBound = false;
+
+function irisPanel() {
+  return document.getElementById('irisPanel');
+}
+
+function openIris() {
+  const panel = irisPanel();
+  if (!panel) return;
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('iris-open');
+  document.getElementById('irisInput')?.focus();
+}
+
+function closeIris() {
+  const panel = irisPanel();
+  if (!panel) return;
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('iris-open');
+}
+
+async function refreshIrisStatus() {
+  const sendBtn = document.getElementById('irisSend');
+  const token = getToken();
+  if (!token) {
+    irisEnabled = false;
+    if (sendBtn) sendBtn.disabled = true;
+    return;
+  }
+  try {
+    const status = await adminGet('/api/admin/assistant/status', token);
+    irisEnabled = Boolean(status.enabled);
+  } catch {
+    irisEnabled = false;
+  }
+  if (sendBtn) sendBtn.disabled = !irisEnabled;
+}
+
+function appendIrisBubble(role, text, extraClass = '') {
+  const box = document.getElementById('irisMessages');
+  if (!box) return null;
+  const el = document.createElement('div');
+  el.className = `iris-bubble ${role}${extraClass ? ` ${extraClass}` : ''}`;
+  el.textContent = text;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+
+async function sendIrisMessage(text) {
+  const content = String(text || '').trim();
+  if (!content || irisBusy) return;
+
+  const input = document.getElementById('irisInput');
+  const sendBtn = document.getElementById('irisSend');
+  if (input) input.value = '';
+
+  appendIrisBubble('user', content);
+  irisHistory.push({ role: 'user', content });
+  irisBusy = true;
+  if (sendBtn) sendBtn.disabled = true;
+
+  const typing = appendIrisBubble('bot', 'Iris está revisando los números…', 'typing');
+
+  try {
+    const token = getToken();
+    const result = await apiPost('/api/admin/assistant/chat', {
+      messages: irisHistory,
+      period: currentPeriod,
+      from: customFrom || undefined,
+      to: customTo || undefined,
+    }, token);
+
+    typing.remove();
+    const reply = result.reply || 'No pude armar una respuesta.';
+    appendIrisBubble('bot', reply);
+    irisHistory.push({ role: 'assistant', content: reply });
+    if (result.periodo) {
+      appendIrisBubble('meta', `Periodo usado: ${result.periodo}`);
+    }
+  } catch (err) {
+    typing.remove();
+    appendIrisBubble('bot', err.message || 'No pude consultar los datos ahora.');
+    irisHistory.pop();
+  } finally {
+    irisBusy = false;
+    if (sendBtn) sendBtn.disabled = !irisEnabled;
+  }
+}
+
+async function initIrisChat() {
+  const panel = irisPanel();
+  if (!panel) return;
+
+  document.getElementById('irisMessages').innerHTML = '';
+  irisHistory = [];
+  appendIrisBubble('bot', IRIS_WELCOME);
+  await refreshIrisStatus();
+  irisEnabled = true;
+  const sendBtn = document.getElementById('irisSend');
+  if (sendBtn) sendBtn.disabled = false;
+
+  if (irisBound) return;
+  irisBound = true;
+  document.getElementById('btnIrisChat')?.addEventListener('click', openIris);
+  document.getElementById('btnCloseIris')?.addEventListener('click', closeIris);
+  document.getElementById('irisForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendIrisMessage(document.getElementById('irisInput').value);
+  });
+  document.getElementById('irisInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendIrisMessage(e.target.value);
+    }
+  });
+  document.getElementById('irisSuggest')?.querySelectorAll('[data-iris-q]').forEach((btn) => {
+    btn.addEventListener('click', () => sendIrisMessage(btn.dataset.irisQ));
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initIrisChat();
+  loadDashboard();
+});

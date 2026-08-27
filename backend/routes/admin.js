@@ -350,7 +350,7 @@ router.post('/bookings', requireAdmin, async (req, res) => {
       return res.status(409).json({
         error: suggestedHora
           ? `Ese horario está ocupado. El siguiente libre es ${suggestedHora}.`
-          : 'Sin bahías libres en ese horario.',
+          : 'No hay horario disponible: la bahía está ocupada durante ese servicio.',
         suggestedHora,
         availableSlots: available,
       });

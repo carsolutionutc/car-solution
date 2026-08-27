@@ -2,86 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carrito — Car Solution</title>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/styles.css">
-<link rel="stylesheet" href="/css/store.css">
+<meta http-equiv="refresh" content="0;url=/productos">
+<title>Redirigiendo al carrito — Car Solution</title>
+<script>location.replace('/productos');</script>
 </head>
-<body class="store-body">
-
-<nav>
-  <div class="nav-marca">
-    Car Solution
-    <small>Carrito</small>
-  </div>
-  <ul class="nav-links">
-    <li><a href="/">Inicio</a></li>
-    <li>
-      <a href="/productos" class="nav-chip">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/></svg>
-        <span class="nav-chip-label">Productos</span>
-      </a>
-    </li>
-    <li>
-      <a href="/carrito" class="nav-chip nav-chip-cart nav-chip-active">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 4h2l2.4 11h9.2L20 8H7"/></svg>
-        <span class="nav-chip-label">Carrito</span>
-        <span class="cart-badge hidden" data-cart-count></span>
-      </a>
-    </li>
-    <li id="navAuthSlot"></li>
-  </ul>
-</nav>
-
-<section class="page-hero page-hero-cart">
-  <div class="page-hero-inner">
-    <div class="page-hero-copy">
-      <span class="page-kicker">Checkout</span>
-      <h1>Tu carrito<br><span>listo para comprar</span></h1>
-      <p>Ajusta cantidades, confirma y recibe tu folio QR por correo para recoger en el negocio.</p>
-      <div class="page-hero-actions">
-        <a href="/productos" class="store-btn store-btn-ghost">Seguir comprando</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="cart-page">
-  <div class="cart-page-main">
-    <div class="section-head tight">
-      <h2>Artículos</h2>
-    </div>
-    <div id="cartItems" class="cart-page-items"></div>
-  </div>
-  <aside class="cart-panel cart-summary">
-    <div class="summary-head">
-      <h2>Resumen</h2>
-      <span class="summary-pill">Pago al recoger</span>
-    </div>
-    <div class="cart-total">
-      <span>Total estimado</span>
-      <strong id="cartTotal">$0</strong>
-    </div>
-    <p id="cartHint" class="hint-text"></p>
-    <div id="checkoutGoogle" class="checkout-google"></div>
-    <button class="store-btn store-btn-primary store-btn-block" id="btnCheckout" disabled>Realizar compra</button>
-    <button class="store-btn store-btn-quiet store-btn-block" id="btnClearCart" type="button">Vaciar carrito</button>
-  </aside>
-</section>
-
-<div class="modal-overlay" id="orderModal">
-  <div class="modal-box">
-    <div class="modal-icono">✓</div>
-    <h3>¡Pedido registrado!</h3>
-    <p id="orderModalText">Revisa tu correo — te enviamos el QR para recoger.</p>
-    <div class="modal-detalles" id="orderModalDetails"></div>
-    <button class="btn-cerrar" id="btnCloseOrderModal">Listo</button>
-  </div>
-</div>
-
-<script src="/js/api.js"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/carrito.js"></script>
+<body>
+<p>El carrito ahora está junto a los productos. <a href="/productos">Ir a la tienda</a>.</p>
 </body>
 </html>
