@@ -131,7 +131,7 @@ Agrega las mismas variables Gmail en **Environment** del servicio (marca como Se
 ## 7. Subir cambios a GitHub
 
 ```powershell
-cd "C:\Users\kuri-\Desktop\Car Solution"
+cd "C:\Users\User\Desktop\Car Solution"
 
 git add .
 git commit -m "Rebrand Car Solution, quitar tabla precios, recibo por Gmail API"
